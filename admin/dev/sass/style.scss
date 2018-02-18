@@ -1,0 +1,310 @@
+@charset "UTF-8";
+/* Colors */
+
+$dark: #100e0c;
+
+$green: #9dc500;
+
+$yellow: #f3c84f;
+
+$yellow: #ffb400;
+$red: #ff2e02;
+
+$lightGray: #e3e3e3;
+
+$borderRadius: 2px;
+
+/* Breakpoint */
+
+$sm: "only screen and (min-width : 576px)";
+$md: "only screen and (min-width : 768px)";
+$lg: "only screen and (min-width : 992px)";
+$xl: "only screen and (min-width : 1200px)";
+$xxl: "only screen and (min-width : 1360px)";
+
+/* Others */
+
+$softBounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+$softBounce: cubic-bezier(0.68, -0.55, 0.265, 2.15);
+//	$softBounce: cubic-bezier(0.68, -0.55, 0.265, 1.30);
+@import 'vicons';
+
+body {
+    position: relative;
+    
+    font-family: 'Raleway', sans-serif;
+
+    textarea {
+        font-family: 'Raleway', sans-serif;
+    }
+}
+
+.primal-tab-radio {
+    display: none;
+ 
+    &:checked + .primal-tab {
+        .primal-tab-content {   
+            animation: opentab .7s normal forwards;
+            
+            .cms-copyrights {
+                display: block;
+            }
+            
+        }
+    }
+}
+
+.primal-yellow {
+
+}
+
+.primal-tab {
+    position: fixed;
+    top: 15px;
+    right: 0;
+    @media #{$sm} {
+        right: 15px;
+    }
+    z-index: 99999;
+    
+    width: 340px;
+    max-width: 100%;
+    
+    margin: 35px 0;
+    background-color: white;
+//    background-color: $red;
+//    background-image: linear-gradient(to bottom, #ffb400, #ff2e02);
+    background-image: linear-gradient(to bottom, $yellow, $red);
+    background-position: center;
+    background-size: 100%;
+    
+    border-radius: 10px;
+    
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    
+    .primal-tab-content {
+        display: block;
+        position: relative;
+        
+        margin: -35px 3px;
+        @media #{$sm} {
+            margin: -35px 15px;
+        }
+        padding: 15px 25px;
+    
+        max-height: 50px;
+        
+        overflow: hidden;
+        
+        background-color: white;
+        border-radius: 10px;
+    
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        
+        transition: .5s $softBounce;
+        
+        &:hover {
+            box-shadow: 0 7px 10px rgba(black, 0.3);
+        }
+        
+        .primal-tab-label {
+            text-align: right;
+            color: $red;
+            
+            margin: -15px -30px 0;
+            padding: 15px 30px;
+            
+            font-weight: 500;
+            
+            
+            i {
+                margin-left: 10px;
+                font-size: 20px;
+            }
+            
+            
+            transition: .5s;
+            
+            &:hover {
+                color: $dark;
+            }
+        }
+        
+        label {
+            display: block;
+            cursor: pointer;
+        }
+        
+        .cms-input {
+            display: block;
+            
+            margin-top: 15px;
+            margin-bottom: 15px;
+            
+            
+            input[type="text"],
+            textarea,
+            select {
+                width: 100%;    
+                padding: 10px;
+                border: none;
+                border: 1px solid $yellow;
+                border: 1px solid $red;
+                border-radius: 15px;
+                border-radius: 5px;
+                
+                font-size: 12px;
+            }
+            
+            textarea {
+                resize: vertical;
+            }
+            
+            position: relative;
+            label {
+                position: absolute;
+                top: -10px;
+                left: 10px;
+                
+                padding: 3px 3px 1px;
+                background-color: white;
+                
+                color: $red;
+                
+                text-transform: lowercase;
+                font-size: 12px;
+            }
+        }
+        
+        .primal-save {
+            display: block;
+            width: 100%;
+            margin: 0 auto;
+            padding: 10px 17px;
+            
+            cursor: pointer;
+            
+            background-color: $red;
+            
+            transition: .3s;
+            &:hover, &:active {
+                background-color: darken( $red, 35% );
+            }
+            
+            border: none;
+            border-radius: 25px;
+            
+            
+            font-size: 13px;
+            line-height: 25px;
+            color: white;
+    
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            text-transform: lowercase;
+
+            i {
+                margin-left: 10px;
+                font-size: 20px;
+            }
+        }
+        
+        .cms-copyrights {    
+            display: none;
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            
+            width: 100%;
+            
+            text-align: center;
+            text-transform: lowercase;
+            font-size: 10px;
+            
+            opacity: 0.5;
+            
+            color: $red;
+        }
+        
+        .primal-hidden-fields {
+            display: none !important;
+        }
+    }
+    
+    ::-moz-selection {
+        color: white;
+        background: lighten( $red , 10% );
+    }
+
+    ::selection {
+        color: white;
+        background: lighten( $red , 10% );
+    }
+    
+}
+
+#primal-cms-edit-page {
+    top: 15px;
+    left: 0;
+    @media #{$sm} {
+        left: 15px;
+    }
+}
+
+#primal-reaction {
+    position: fixed; 
+    top: -100px;
+    right: -350px; 
+
+    max-width: 290px;
+ 
+    z-index: 109999;
+ 
+    padding: 10px 20px;
+    border-radius: 25px;
+    
+    font-size: 13px;
+    line-height: 25px;
+    color: white;
+    
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+ 
+    transition: .3s $softBounce;
+
+    i {
+        margin-left: 10px;
+        font-size: 20px;
+    }
+    
+    &.success,
+    &.fail {
+        top: 15px;
+        right: 15px;
+    }
+
+    &.success {
+        
+        color: darken( $green, 35%) ;
+        background-color: $green;
+    }
+
+    &.fail {
+        background-color: $red;
+    }
+}
+
+@keyframes opentab {
+    0% {
+        padding: 15px 25px;
+        max-height: 50px;
+    }
+    50% {
+        padding: 35px 25px;
+    }
+    90% {
+        max-height: 100vh;
+    }
+    100% { 
+        padding: 35px 25px;
+        max-height: none;
+    }
+}

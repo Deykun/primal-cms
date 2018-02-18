@@ -1,0 +1,209 @@
+@font-face {
+    font-family: 'vicons';
+    src:  url('../fonts/vicons.eot');
+    src:  url('../fonts/vicons.eot#iefix') format('embedded-opentype'),
+        url('../fonts/vicons.ttf') format('truetype'),
+        url('../fonts/vicons.woff') format('woff'),
+        url('../fonts/vicons.svg#vicons') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="primal-icon-"],
+[class*=" primal-icon-"],
+%primalicon {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: 'vicons' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    vertical-align: middle;
+
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.primal-icon-box:before {
+  content: "\e900";
+}
+.primal-icon-write:before {
+  content: "\e901";
+}
+.primal-icon-clock:before {
+  content: "\e902";
+}
+.primal-icon-reply:before {
+  content: "\e903";
+}
+.primal-icon-reply-all:before {
+  content: "\e904";
+}
+.primal-icon-forward:before {
+  content: "\e905";
+}
+.primal-icon-flag:before {
+  content: "\e906";
+}
+.primal-icon-search:before {
+  content: "\e907";
+}
+.primal-icon-trash:before {
+  content: "\e908";
+}
+.primal-icon-envelope:before {
+  content: "\e909";
+}
+.primal-icon-bubble:before {
+  content: "\e90a";
+}
+.primal-icon-bubbles:before {
+  content: "\e90b";
+}
+.primal-icon-user:before {
+  content: "\e90c";
+}
+.primal-icon-users:before {
+  content: "\e90d";
+}
+.primal-icon-cloud:before {
+  content: "\e90e";
+}
+.primal-icon-download:before {
+  content: "\e90f";
+}
+.primal-icon-upload:before {
+  content: "\e910";
+}
+.primal-icon-rain:before {
+  content: "\e911";
+}
+.primal-icon-sun:before {
+  content: "\e912";
+}
+.primal-icon-moon:before {
+  content: "\e913";
+}
+.primal-icon-bell:before {
+  content: "\e914";
+}
+.primal-icon-folder:before {
+  content: "\e915";
+}
+.primal-icon-pin:before {
+  content: "\e916";
+}
+.primal-icon-sound:before {
+  content: "\e917";
+}
+.primal-icon-microphone:before {
+  content: "\e918";
+}
+.primal-icon-camera:before {
+  content: "\e919";
+}
+.primal-icon-image:before {
+  content: "\e91a";
+}
+.primal-icon-cog:before {
+  content: "\e91b";
+}
+.primal-icon-calendar:before {
+  content: "\e91c";
+}
+.primal-icon-book:before {
+  content: "\e91d";
+}
+.primal-icon-map-marker:before {
+  content: "\e91e";
+}
+.primal-icon-store:before {
+  content: "\e91f";
+}
+.primal-icon-support:before {
+  content: "\e920";
+}
+.primal-icon-tag:before {
+  content: "\e921";
+}
+.primal-icon-heart:before {
+  content: "\e922";
+}
+.primal-icon-video-camera:before {
+  content: "\e923";
+}
+.primal-icon-trophy:before {
+  content: "\e924";
+}
+.primal-icon-cart:before {
+  content: "\e925";
+}
+.primal-icon-eye:before {
+  content: "\e926";
+}
+.primal-icon-cancel:before {
+  content: "\e927";
+}
+.primal-icon-chart:before {
+  content: "\e928";
+}
+.primal-icon-target:before {
+  content: "\e929";
+}
+.primal-icon-printer:before {
+  content: "\e92a";
+}
+.primal-icon-location:before {
+  content: "\e92b";
+}
+.primal-icon-bookmark:before {
+  content: "\e92c";
+}
+.primal-icon-monitor:before {
+  content: "\e92d";
+}
+.primal-icon-cross:before {
+  content: "\e92e";
+}
+.primal-icon-plus:before {
+  content: "\e92f";
+}
+.primal-icon-left:before {
+  content: "\e930";
+}
+.primal-icon-up:before {
+  content: "\e931";
+}
+.primal-icon-browser:before {
+  content: "\e932";
+}
+.primal-icon-windows:before {
+  content: "\e933";
+}
+.primal-icon-switch:before {
+  content: "\e934";
+}
+.primal-icon-dashboard:before {
+  content: "\e935";
+}
+.primal-icon-play:before {
+  content: "\e936";
+}
+.primal-icon-fast-forward:before {
+  content: "\e937";
+}
+.primal-icon-next:before {
+  content: "\e938";
+}
+.primal-icon-refresh:before {
+  content: "\e939";
+}
+.primal-icon-film:before {
+  content: "\e93a";
+}
+.primal-icon-home:before {
+  content: "\e93b";
+}

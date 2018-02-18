@@ -1,0 +1,35 @@
+.text-center {
+    text-align: center;
+}
+
+
+.text-center,
+.box.bha .text-center {
+    &, p {
+        text-align: center;      
+    }
+}
+
+.half-container {
+  $smwidth: 540px;
+  $mdwidth: 720px;
+  $lgwidth: 960px;
+  $xlwidth: 1140px;
+
+  width: 100%;
+  padding: 0 15px;
+
+  @media #{$sm} { width: #{$smwidth  / 2 - 30}; padding: 0; }
+  @media #{$md} { width: #{$mdwidth / 2 - 30}; }
+  @media #{$lg} { width: #{$lgwidth /  2 - 30}; }
+  @media #{$xl} { width: #{$xlwidth / 2 - 30}; }
+
+  &.pull-right { margin-left:auto; }
+  &.pull-left { margin-right:auto; }
+}
+
+.child-middle {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+}
