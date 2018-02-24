@@ -1,7 +1,7 @@
 {
-  "name": "portfolio",
+  "name": "Primal Admin",
   "version": "1.0.0",
-  "description": "Moje portfolio.",
+  "description": "Primal admin GULP",
   "main": "gulpfile.js",
   "directories": {
     "example": "example"

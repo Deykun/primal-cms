@@ -82,6 +82,10 @@ body {
     
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     
+    &, * {
+        box-sizing: border-box;
+    }
+    
     .primal-tab-content {
         display: block;
         position: relative;
@@ -108,7 +112,7 @@ body {
         }
         
         .primal-tab-label {
-            text-align: right;
+            text-align: center;
             color: $red;
             
             margin: -15px -30px 0;
@@ -141,7 +145,6 @@ body {
             margin-top: 15px;
             margin-bottom: 15px;
             
-            
             input[type="text"],
             textarea,
             select {
@@ -158,6 +161,41 @@ body {
             
             textarea {
                 resize: vertical;
+            }
+            
+            &.chbox {
+                input {
+                    display: none;
+
+                    &:checked {
+                        & + .checkbox,
+                        & + .checkbox + label {
+                            color: $red;
+                            opacity: 1;
+                        }
+                    }
+                }
+                
+                .checkbox,
+                .checkbox + label {
+                    color: $dark;
+                    opacity: .2;
+                }
+                
+                label {
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    background-color: transparent;
+                    display: inline-block;
+                    font-weight: 500;
+                    text-align: right;
+                    width: 100%;
+                }
+            }
+            
+            input[type="checkbox"] {
+
             }
             
             position: relative;
@@ -188,7 +226,8 @@ body {
             
             transition: .3s;
             &:hover, &:active {
-                background-color: darken( $red, 35% );
+                background-color: darken( $red, 25% );
+                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
             }
             
             border: none;
@@ -220,9 +259,8 @@ body {
             text-transform: lowercase;
             font-size: 10px;
             
-            opacity: 0.5;
-            
-            color: $red;
+            color: $dark;
+            opacity: .2;
         }
         
         .primal-hidden-fields {

@@ -1,4 +1,4 @@
-<?php  $sitename="primal";  $title="Brak strony";  $metadescription="ds";  $active=1;  $cache=0;  $menu_name="Błąd 404";  $url="404";  $dirtheme="/../themes/bear/";  $template="404";  $siteblocks='[]'; $siteblock=json_decode( $siteblocks , true );  $blocks='{"top":"<h1 class=\"section-title\" style=\"text-align: right;\">404<\/h1>\r\n<p style=\"text-align: right;\"><strong>Przykro nam,<\/strong> ale szukana strona nie została znaleziona.<\/p>","":null}'; $block=json_decode( $blocks , true );  $availableTemplatesArray='{"404":"404","home":"home","subpage":"subpage"}'; $availableTemplates=json_decode( $availableTemplatesArray , true );  ?><!DOCTYPE html>
+<?php  $sitename="primal";  $title="Brak strony";  $metadescription="ds";  $active=1;  $cache=0;  $menu_name="Błąd 404";  $url="404";  $cmscatalog="/";  $themecatalog="/themes/safari/";  $template="404";  $siteblocks='{"footer":"<p>primal - <strong>2018<\/strong><br><\/p>"}'; $siteblock=json_decode( $siteblocks , true );  $blocks='{"top":"<h1 class=\"section-title\" style=\"text-align: right;\">404<\/h1>\r\n<p style=\"text-align: right;\"><strong>Przykro nam,<\/strong> ale szukana strona nie została znaleziona.<\/p>","":null}'; $block=json_decode( $blocks , true );  $admin=true;  $availableTemplatesArray='{"404":"404","home":"home","subpage":"subpage"}'; $availableTemplates=json_decode( $availableTemplatesArray , true );  ?><!DOCTYPE html>
 <html lang="pl">
 
 <head>
@@ -12,7 +12,7 @@
     <meta property="og:description" content="ds">
 
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,700&amp;subset=latin-ext" rel="stylesheet">
-    <link href="/../themes/bear/assets/css/stylesheet.min.css" rel="stylesheet">
+    <link href="/themes/safari/assets/css/stylesheet.min.css" rel="stylesheet">
 
 </head>
 
@@ -27,13 +27,13 @@
                                 <li><a href="/">strona główa</a></li>
                                 <li><a href="/dokumentacja">dokumentacja</a></li>
                                 <li><a href="/demo">demo</a></li>
-                                <li><a href="https://github.com/deykun" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
+                                <li><a href="https://github.com/deykun/primal-cms" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
                             </ul>
                         </nav>
                     </div>
                     <div class="col-12 col-lg-9 bg-black child-middle">
                         <div class="text">
-                            <div id="cms-field-top" class="wysiwyg regular"  data-wysiwyg-key="top" data-block-update="false"><h1 class="section-title" style="text-align: right;">404</h1>
+                            <div id="cms-field-top" class="wysiwyg regular"  data-block-key="top" data-block-update="false"><h1 class="section-title" style="text-align: right;">404</h1>
 <p style="text-align: right;"><strong>Przykro nam,</strong> ale szukana strona nie została znaleziona.</p></div>
                         </div>
                     </div>
@@ -41,21 +41,15 @@
             </div>
         </section>
     </main>
-
     <footer>
-        <p><i class="icon-browser"></i> <strong>primal</strong> | 2018</p>
+        <div id="cms-field-footer" class="wysiwyg regular"  data-siteblock-key="footer" data-block-update="false"><p>primal - <strong>2018</strong><br></p></div>
     </footer>
-    <!--
     <div id="cookieInfo" style="display: none;">
-        <p>Używamy plików <strong>cookies</strong> w celu ułatwienia korzystania z naszej strony. Brak zmiany w ustawieniach przeglądarki oznacza zgodę na ich wykorzystywanie.</p>
-        <button id="eat-cookie">Rozumiem</button>
+        <div id="cms-field-cookieInfo" class="wysiwyg regular"  data-siteblock-key="cookieInfo" data-block-update="false"></div>
+        <button id="eat-cookie"><div id="cms-field-cookieOK" class="wysiwyg regular"  data-siteblock-key="cookieOK" data-block-update="false"></div></button>
     </div>
--->
-    <script src="assets/other/tinymce/tinymce.min.js"></script>
-    <script src="assets/other/tinymce/langs/pl.js"></script>
-    <script src="assets/js/script.js"></script>
-    <script src="/../themes/bear/assets/js/script.js"></script>
-<link href="assets/css/stylesheet.min.css" rel="stylesheet">
+    <script src="/themes/safari/assets/js/script.js"></script>
+<link href="<?php echo $cmscatalog; ?>admin/assets/css/stylesheet.min.css" rel="stylesheet">
 
     <input class="primal-tab-radio" id="tab-edit-page" type="checkbox" name="primaltab">
     <div class="primal-tab" id="primal-cms-edit-page">
@@ -76,21 +70,15 @@
                 <textarea id="metadescription" name="metadescription"><?php echo $metadescription; ?></textarea>
                 <label for="metadescription">Opis meta</label>
             </div>
-
-            <div class="row">
-                <div class="col-12 col-sm-6">
-                    <div class="cms-input">
-                        <input id="active" name="active" type="checkbox" <?php if ($active==1 ) {echo 'checked'; } ?> >
-                        <label for="active">Wyświetlaj</label>
-                    </div>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                    <div class="cms-input">
-                        <input id="cache" name="cache" type="checkbox" <?php if ($cache==1 ) {echo 'checked'; } ?> >
-                        <label class="admin-input-label" for="cache">Pamięć podręczna</label>
-                    </div>
-                </div>
+            <div class="cms-input chbox">
+                <input id="active" name="active" type="checkbox" <?php if ($active==1 ) {echo 'checked'; } ?> >
+                <span class="checkbox primal-icon-eye"></span>
+                <label for="active">Wyświetlaj</label>
+            </div>
+            <div class="cms-input chbox">
+                <input id="cache" name="cache" type="checkbox" <?php if ($cache==1 ) {echo 'checked'; } ?> >
+                <span class="checkbox primal-icon-clock"></span>
+                <label class="admin-input-label" for="cache">Pamięć podręczna</label>
             </div>
             <div class="cms-input">
                 <select name="template" id="template">
@@ -119,6 +107,8 @@
     
     <input class="primal-tab-radio" id="tab-cms-close-all" type="radio" name="primaltab">
     <div id="primal-reaction"></div>
-</body>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/tinymce.min.js"></script>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/langs/pl.js"></script>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/js/script.js"></script></body>
 
 </html>

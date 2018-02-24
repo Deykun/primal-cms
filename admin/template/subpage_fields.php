@@ -1,4 +1,4 @@
-<link href="assets/css/stylesheet.min.css" rel="stylesheet">
+<link href="<?php echo $cmscatalog; ?>admin/assets/css/stylesheet.min.css" rel="stylesheet">
 
     <input class="primal-tab-radio" id="tab-edit-page" type="checkbox" name="primaltab">
     <div class="primal-tab" id="primal-cms-edit-page">
@@ -19,21 +19,15 @@
                 <textarea id="metadescription" name="metadescription"><?php echo $metadescription; ?></textarea>
                 <label for="metadescription">Opis meta</label>
             </div>
-
-            <div class="row">
-                <div class="col-12 col-sm-6">
-                    <div class="cms-input">
-                        <input id="active" name="active" type="checkbox" <?php if ($active==1 ) {echo 'checked'; } ?> >
-                        <label for="active">Wyświetlaj</label>
-                    </div>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                    <div class="cms-input">
-                        <input id="cache" name="cache" type="checkbox" <?php if ($cache==1 ) {echo 'checked'; } ?> >
-                        <label class="admin-input-label" for="cache">Pamięć podręczna</label>
-                    </div>
-                </div>
+            <div class="cms-input chbox">
+                <input id="active" name="active" type="checkbox" <?php if ($active==1 ) {echo 'checked'; } ?> >
+                <span class="checkbox primal-icon-eye"></span>
+                <label for="active">Wyświetlaj</label>
+            </div>
+            <div class="cms-input chbox">
+                <input id="cache" name="cache" type="checkbox" <?php if ($cache==1 ) {echo 'checked'; } ?> >
+                <span class="checkbox primal-icon-clock"></span>
+                <label class="admin-input-label" for="cache">Pamięć podręczna</label>
             </div>
             <div class="cms-input">
                 <select name="template" id="template">
@@ -62,3 +56,6 @@
     
     <input class="primal-tab-radio" id="tab-cms-close-all" type="radio" name="primaltab">
     <div id="primal-reaction"></div>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/tinymce.min.js"></script>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/langs/pl.js"></script>
+    <script src="<?php echo $cmscatalog; ?>admin/assets/js/script.js"></script>

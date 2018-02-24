@@ -12,7 +12,7 @@
     <meta property="og:description" content="(metadescription)">
 
     <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,700&amp;subset=latin-ext" rel="stylesheet">
-    <link href="(dirtheme)assets/css/stylesheet.min.css" rel="stylesheet">
+    <link href="(themecatalog)assets/css/stylesheet.min.css" rel="stylesheet">
 
 </head>
 
@@ -27,13 +27,13 @@
                                 <li><a href="/">strona główa</a></li>
                                 <li><a href="/dokumentacja" class="active">dokumentacja</a></li>
                                 <li><a href="/demo">demo</a></li>
-                                <li><a href="https://github.com/deykun" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
+                                <li><a href="https://github.com/deykun/primal-cms" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
                             </ul>
                         </nav>
                     </div>
                     <div class="col-12 col-lg-9 bg-black child-middle">
                         <div class="text">
-                            (block name='top')
+                            (block key='top')
                         </div>
                     </div>
                 </div>
@@ -44,7 +44,7 @@
                 <div class="row">
                     <div class="col-12 col-lg-9 offset-lg-3 bg-white">
                         <div class="text">
-                            (block name='content')
+                            (block key='content')
                         </div>
                     </div>
                 </div>
@@ -53,18 +53,13 @@
     </main>
 
     <footer>
-        <p><i class="icon-browser"></i> <strong>primal</strong> | 2018</p>
+        (siteblock key='footer')
     </footer>
-    <!--
     <div id="cookieInfo" style="display: none;">
-        <p>Używamy plików <strong>cookies</strong> w celu ułatwienia korzystania z naszej strony. Brak zmiany w ustawieniach przeglądarki oznacza zgodę na ich wykorzystywanie.</p>
-        <button id="eat-cookie">Rozumiem</button>
+        (siteblock key='cookieInfo')
+        <button id="eat-cookie">(siteblock key='cookieOK')</button>
     </div>
--->
-    <script src="assets/other/tinymce/tinymce.min.js"></script>
-    <script src="assets/other/tinymce/langs/pl.js"></script>
-    <script src="assets/js/script.js"></script>
-    <script src="(dirtheme)assets/js/script.js"></script>
+    <script src="(themecatalog)assets/js/script.js"></script>
 </body>
 
 </html>

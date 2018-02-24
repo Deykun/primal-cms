@@ -48,26 +48,43 @@ function serializeForm(form) {
 function sendForm(e) {
     e.preventDefault();
     if (e.target.id === 'primal-edit-page-form') {
-        if (document.querySelector('[data-block-update="true"]') !== null) {
-            var blocksToUpdate = document.querySelectorAll('[data-block-update="true"]');
+        var extraFieldsHTML = '';
+        if (document.querySelector('[data-block-update="true"][data-block-key]') !== null) {
+            var blocksToUpdate = document.querySelectorAll('[data-block-update="true"][data-block-key]');
             
-            var blocksKeysInputValue = '';
+            var blocksKeysInputValue = [];
             var blocksInputs = '';
             Array.prototype.forEach.call(blocksToUpdate, function (el, i) {        
-                var blockKey = el.getAttribute('data-wysiwyg-key');
+                var blockKey = el.getAttribute('data-block-key');
                 var blockHTML = el.innerHTML;
                 blockHTML = blockHTML.replace(/data-mce-style="(.*?)"/ig,''); // hack   
                 
-                if (blocksKeysInputValue === '' ) {
-                    blocksKeysInputValue += blockKey;
-                } else  {
-                    blocksKeysInputValue += ','+blockKey;
-                }
+                blocksKeysInputValue.push( blockKey );
                 
                 blocksInputs += '<textarea class="hidden" name="'+blockKey+'">'+blockHTML+'</textarea>';
             });
-            e.target.querySelector('.primal-hidden-fields').innerHTML = '<input type="hidden" name="blockkeys" value="'+blocksKeysInputValue+'">'+blocksInputs;
+            extraFieldsHTML += '<input type="hidden" name="blockkeys" value="'+blocksKeysInputValue.join(',')+'">'+blocksInputs;
         }
+        if (document.querySelector('[data-block-update="true"][data-siteblock-key]') !== null) {
+            var blocksToUpdate = document.querySelectorAll('[data-block-update="true"][data-siteblock-key]');
+             
+            var blocksKeysInputValue = []; 
+            var blocksInputs = '';
+            Array.prototype.forEach.call(blocksToUpdate, function (el, i) {        
+                var blockKey = el.getAttribute('data-siteblock-key');
+                var blockHTML = el.innerHTML;
+                blockHTML = blockHTML.replace(/data-mce-style="(.*?)"/ig,''); // hack   
+                blockHTML = blockHTML.replace(/data-mce-bogus="(.*?)"/ig,''); // hack   
+                
+                blocksKeysInputValue.push( blockKey );
+                
+                blocksInputs += '<textarea class="hidden" name="'+blockKey+'">'+blockHTML+'</textarea>';
+            });
+            e.target.querySelector('.primal-hidden-fields').innerHTML = '<input type="hidden" name="blockkeys" value="'+blocksKeysInputValue.join(',')+'">'+blocksInputs;
+            
+            extraFieldsHTML += '<input type="hidden" name="siteblockkeys" value="'+blocksKeysInputValue.join(',')+'">'+blocksInputs;
+        }
+        e.target.querySelector('.primal-hidden-fields').innerHTML = extraFieldsHTML;
     }
     
     var form = e.target;
