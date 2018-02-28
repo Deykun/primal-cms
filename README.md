@@ -7,4 +7,8 @@ Prosty CMS z bazą danych w pliku JSON.
 * Szablony wewnątrz plików .php (block name="top") generuje blok WYSIWYG na froncie
 * Pamięć podręczna
 
+## Zmiany
+* Logowanie
+* Zmiana adresu
+
 ![edycja treści](http://deykun.it/lab/primal/edycja-strony.gif)

@@ -54,10 +54,6 @@ body {
     }
 }
 
-.primal-yellow {
-
-}
-
 .primal-tab {
     position: fixed;
     top: 15px;
@@ -146,6 +142,7 @@ body {
             margin-bottom: 15px;
             
             input[type="text"],
+            input[type="password"],
             textarea,
             select {
                 width: 100%;    
@@ -161,6 +158,10 @@ body {
             
             textarea {
                 resize: vertical;
+                height: 75px;
+                min-height: 60px;
+                max-height: 100px;
+                border-bottom-right-radius: 0;
             }
             
             &.chbox {
@@ -209,7 +210,7 @@ body {
                 
                 color: $red;
                 
-                text-transform: lowercase;
+//                text-transform: lowercase;
                 font-size: 12px;
             }
         }
@@ -252,15 +253,24 @@ body {
             position: absolute;
             bottom: 10px;
             left: 0;
-            
             width: 100%;
             
             text-align: center;
             text-transform: lowercase;
             font-size: 10px;
+            opacity: 0.4;
             
-            color: $dark;
-            opacity: .2;
+            color: #afafaf;
+            
+            .primal-link {
+                color: $red;
+            }
+            
+            transition: .2s;
+            
+            &:hover {
+                opacity: 1;
+            }
         }
         
         .primal-hidden-fields {
@@ -287,6 +297,15 @@ body {
         left: 15px;
     }
 }
+#primal-cms-login-form {
+    top: 15px;
+    left: 0;
+    @media #{$sm} {
+        left: 15px;
+    }
+}
+
+
 
 #primal-reaction {
     position: fixed; 
@@ -313,6 +332,13 @@ body {
         font-size: 20px;
     }
     
+    .primal-icon-refresh {
+        display: inline-block;
+        transform-origin: 50% 50%;
+        animation: rotate 1.5s infinite alternate backwards $softBounce;
+        animation: rotate 1.5s infinite $softBounce;
+    }
+    
     &.success,
     &.fail {
         top: 15px;
@@ -322,6 +348,7 @@ body {
     &.success {
         
         color: darken( $green, 35%) ;
+        color: white ;
         background-color: $green;
     }
 
@@ -329,6 +356,16 @@ body {
         background-color: $red;
     }
 }
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 @keyframes opentab {
     0% {

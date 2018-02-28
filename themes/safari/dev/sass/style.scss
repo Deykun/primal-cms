@@ -100,12 +100,28 @@ footer {
     font-weight: 300;
     font-size: 16px;
     @media #{$md} {
-        font-size: 22px;   
+        font-size: 18px;   
     }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+    }
+    
+    h1, h2 {
+        margin-bottom: 12px;    
+    }
+    
+    h3, h4, h5 {
+        margin-bottom: 7px;
+        
+    }
+    
+    
 
     .section-title {
         color: lighten( $green, 15%);
         font-size: 32px;
+        font-weight: 800;
         margin-bottom: 10px;
         @media #{$sm} {
             font-size: 50px;
@@ -161,7 +177,18 @@ footer {
         color: rgba(100%, 100%, 100%, .7);
         border-radius: 17px;
     }
-
+    
+    pre { 
+        font-size: 13px;
+        line-height: 18px;
+        
+        padding: 15px;
+        background-color: #fcfcfc;
+        border-left: 7px solid black;
+        
+        overflow-x: auto;
+    }
+    
     & > :last-child {
         margin-bottom: 0;
     }
@@ -302,5 +329,47 @@ main {
         opacity: 1;
         
         transition: .5s;
+    }
+}
+
+#cookieInfo {
+    display: block;
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    z-index: 100;
+    width: 400px;
+    max-width: calc(100vw - 30px);
+    background-color: lighten($green, 15%);
+    
+    p {
+        font-size: 14px;
+        line-height: 22px;
+        text-align: justify;
+        margin-bottom: 12px;
+    }
+    
+    padding: 25px;
+    @media #{$md} {
+        padding: 35px;
+    }
+    
+    button {
+        display: block;
+        border: none;
+        width: 100%;
+        padding: 7px;
+        font-size: 19px;
+        font-weight: 500;
+        background-color: black;
+        color: lighten( $green, 15% );
+        cursor: pointer;
+        margin: 30px auto 0;
+        
+        transition: .1s;
+        
+        &:hover {
+            color: white;
+        }
     }
 }

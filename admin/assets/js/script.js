@@ -1,5 +1,6 @@
 var primal = {
-    reactionTime: 10000,
+    reactionTime: 3000,
+    reloadTime: 1300,
     reactionTimeout: ''
 };
 
@@ -22,6 +23,15 @@ function showReaction(reaction) {
 
     window.clearTimeout(primal.reactionTimeout);
     primal.reactionTimeout = window.setTimeout(hideReaction, primal.reactionTime);
+    
+    if (reaction.reload == true ) {
+        
+        if (reaction.newurl) {
+            location.pathname = reaction.newurl;
+        } else {
+            window.setTimeout(function(e) { location.reload() }, primal.reloadTime);
+        }
+    }
 }
 
 function hideReaction() {
@@ -56,11 +66,12 @@ function sendForm(e) {
             var blocksInputs = '';
             Array.prototype.forEach.call(blocksToUpdate, function (el, i) {        
                 var blockKey = el.getAttribute('data-block-key');
-                var blockHTML = el.innerHTML;
-                blockHTML = blockHTML.replace(/data-mce-style="(.*?)"/ig,''); // hack   
-                
+                var blockHTML = tinymce.get('cms-field-'+blockKey).getContent();
+                blockHTML = blockHTML.replace(/&lt;/g,'|&lt;|');
+                blockHTML = blockHTML.replace(/&gt;/g,'|&gt;|');
+                console.log(blockHTML);
                 blocksKeysInputValue.push( blockKey );
-                
+                 
                 blocksInputs += '<textarea class="hidden" name="'+blockKey+'">'+blockHTML+'</textarea>';
             });
             extraFieldsHTML += '<input type="hidden" name="blockkeys" value="'+blocksKeysInputValue.join(',')+'">'+blocksInputs;
@@ -87,8 +98,9 @@ function sendForm(e) {
         e.target.querySelector('.primal-hidden-fields').innerHTML = extraFieldsHTML;
     }
     
-    var form = e.target;
+    var form = e.target; 
     var dataToSend = serializeForm(form);
+    console.log(dataToSend);
     var request = new XMLHttpRequest();
     var urlrequest = form.getAttribute('action');
     request.open('POST', urlrequest, true);
@@ -96,6 +108,39 @@ function sendForm(e) {
     request.send(dataToSend);
     request.onload = function () {
         if (this.status >= 200 && this.status < 400) {
+            try {
+                var ajaxReaction = JSON.parse(this.responseText);
+                showReaction(ajaxReaction);
+            } catch (e) {
+                showReaction({
+                    status: 'fail',
+                    text: 'Błąd w odpowiedzi. <i class="primal-icon-rain"></i>'
+                });
+            }
+        } else {
+            showReaction({
+                status: 'fail',
+                text: 'Błąd w odpowiedzi. <i class="primal-icon-rain"></i>'
+            });
+        }
+    };
+    request.onerror = function () {
+        showReaction({
+            status: 'fail',
+            text: 'Błąd w przesyłania danych. <i class="primal-icon-download"></i>'
+        });
+    };
+}
+
+function sendLink(e) {
+    e.preventDefault();
+    var urlrequest = e.target.getAttribute('href');
+    var request = new XMLHttpRequest();
+    request.open('POST', urlrequest, true);
+    request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+    request.send();
+    request.onload = function () {
+    if (this.status >= 200 && this.status < 400) {
             try {
                 var ajaxReaction = JSON.parse(this.responseText);
                 showReaction(ajaxReaction);
@@ -152,6 +197,29 @@ document.addEventListener('DOMContentLoaded', function () {
             el.addEventListener('submit', sendForm);
         });
     }
+    
+    if (document.querySelector('.primal-link') !== null) {
+        var primalLinks = document.querySelectorAll('.primal-link');
+
+        Array.prototype.forEach.call(primalLinks, function (el, i) {
+            el.addEventListener('click', sendLink);
+        });
+    }
+    
+    /* Ctrl + S to save */
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.keyCode === 83) {
+            e.preventDefault();
+            var editPageForm = document.getElementById('primal-edit-page-form');
+            
+            var event = document.createEvent('HTMLEvents');
+                event.initEvent('submit', true, true);
+            
+            editPageForm.dispatchEvent(event);
+            
+            return false;
+        }
+    });;
 
     /* Reaction */
     primal.reactionBox.addEventListener('click', hideReaction);

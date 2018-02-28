@@ -2,18 +2,7 @@
 <html lang="pl">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>(title) - (sitename)</title>
-
-    <meta name="description" content="(metadescription)">
-    <meta property="og:title" content="(title) - (sitename)">
-    <meta property="og:description" content="(metadescription)">
-
-    <link href="https://fonts.googleapis.com/css?family=Raleway:300,400,500,700&amp;subset=latin-ext" rel="stylesheet">
-    <link href="(themecatalog)assets/css/stylesheet.min.css" rel="stylesheet">
-
+    (subtemplate key='header')
 </head>
 
 <body>

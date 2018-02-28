@@ -1,48 +1,7 @@
 console.log('Cześć!');
 var config = {
-	jquery: false,
-    counter: false,
-	map: false
+	jquery: false
 };
-
-
-function simplyParallax( selector , speed ) {
-	
-	var elements = document.querySelectorAll(selector);
-	
-	Array.prototype.forEach.call(elements, function(el, i){
-
-		var elHeight = el.offsetHeight;
-		var elToTop = el.getBoundingClientRect().top;
-		
-		/* Start value in % */
-		var elBias = Number(window.getComputedStyle(el).getPropertyValue('background-position-y').replace('%',''));
-		
-		var animate = function() {		
-			var yToTop = document.body.scrollTop ? document.body.scrollTop : document.documentElement.scrollTop;
-
-			var yPercent = Math.round( ((yToTop + elToTop) / elHeight / speed * 100));
-			yPercent += elBias;
-			
-			if (yPercent > 100) { yPercent = 100; }
-			else if (yPercent < 0) { yPercent = 0; }
-
-			el.setAttribute('style', 'background-position-y: '+yPercent+'%;');
-		} 
-
-		animate();
- 
-		var timer = '';
-		window.addEventListener('scroll', function(e) {
-			window.clearTimeout(timer);
-			timer = window.setTimeout( animate , 1);
-
-			return;  
-		}); 
-		
-	});
-
-}
 
 $(document).ready(function () {
 	config.jquery = true; 

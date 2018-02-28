@@ -2,19 +2,16 @@
 
     <input class="primal-tab-radio" id="tab-edit-page" type="checkbox" name="primaltab">
     <div class="primal-tab" id="primal-cms-edit-page">
-        <form id="primal-edit-page-form" action="index.php?page=<?php echo $page; ?>&action=page_update" method="post" class="primal-tab-content primal-form">
+        <form id="primal-edit-page-form" action="index.php?page=<?php echo $url; ?>&action=page_update" method="post" class="primal-tab-content primal-form">
             <label class="primal-tab-label primal-yellow" for="tab-edit-page">edytuj tę stronę <i class="primal-icon-browser"></i></label>
-
             <div class="cms-input">
                 <input id="title" name="title" value="<?php echo $title; ?>" type="text" required>
                 <label for="title">Tytuł strony</label>
             </div>
-
             <div class="cms-input">
                 <input id="menu_name" name="menu_name" value="<?php echo $menu_name; ?>" type="text" required>
                 <label for="menu_name">Nazwa w menu</label>
             </div>
-
             <div class="cms-input">
                 <textarea id="metadescription" name="metadescription"><?php echo $metadescription; ?></textarea>
                 <label for="metadescription">Opis meta</label>
@@ -44,17 +41,20 @@
                 </select>
                 <label for="template">Szablon</label>
             </div>
+            <div class="cms-input">
+                <input id="url" name="url" value="<?php echo $url; ?>" type="text" required <?php if ($url == '404') { echo 'disabled'; } ?>>
+                <label for="url">Adres URL</label>
+            </div>
             <div class="primal-hidden-fields">
-                
             </div>
             <button class="primal-save">Zapisz <i class="primal-icon-upload"></i></button>
             <div class="cms-copyrights">
-                Primal CMS
+                Primal CMS - <a class="primal-link" href="<?php echo $cmscatalog; ?>index.php?page=<?php echo $page; ?>&action=logout">wyloguj</a>
             </div>
         </form>
     </div>
     
-    <input class="primal-tab-radio" id="tab-cms-close-all" type="radio" name="primaltab">
+    <input class="primal-tab-radio" id="tab-cms-close-all" type="radio" name="primaltab" checked>
     <div id="primal-reaction"></div>
     <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/tinymce.min.js"></script>
     <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/langs/pl.js"></script>

@@ -1,5 +1,4 @@
 <?php 
-mb_internal_encoding('UTF-8');
 
 /*
 
@@ -12,106 +11,133 @@ mb_internal_encoding('UTF-8');
 
 */
 
+session_start();
+mb_internal_encoding('UTF-8');
+
 
 class primal {
+    private static $debug = false;
     private static $admin = false;
+    private static $login = false;
     private static $dirtheme = '/themes/safari/';
     private static $user = 'admin';
-    private static $password = 'password';
+    private static $password = 'admin';
+    private static $adminSessionHash = 'sjhgsjh';
     private static $cmscatalog = '/'; // site.com → '/', site.com/blog → '/blog/'
     private static $theme = 'safari';
     private static $minifyHTML = true;
 
     private static $db = [];
-    public static $curentpage = '';    
+    public static $pagekey = '';    
     
-	public static function init() {
-        
-        if ( isset($_SESSION['admin']) ) {
+	public static function init() {        
+        if (isset($_SESSION['pah']) && $_SESSION['pah'] == self::$adminSessionHash) {
 			self::$admin = true;
 		}
         
         self::$db = self::getDataFromJSON();
         
-        if ( $page = isset( $_GET['page'] ) && $_GET['page'] != 'index.php') {
-			$requestedpage = self::makeMeSafe( $_GET['page'] );
-            if ( isset( self::$db['pages'][$requestedpage]['active'] ) && self::$db['pages'][$requestedpage]['active'] == 1 ) {
-                self::$curentpage = $requestedpage;
-            } else {
-                // Not found supage
-                self::$curentpage = '404';
-            }
-		} else {
-            // Home page
-            self::$curentpage = self::$db['indexpage'];    
-        }
-        
-        
+        self::$pagekey = self::urlMatch();
+                
         if ( self::$admin == true ) {
             if (isset($_GET['action'])) {
-            $action = self::makeMeSafe( $_GET['action'] );
-                if ($action == 'page_update') {                
-                    // Saving blocks                
-                    if ( isset($_POST['blockkeys']) ) {
-                        $blocks = explode(",", $_POST['blockkeys']);
-                        foreach($blocks as $block) {
-                            self::$db['pages'][self::$curentpage]['block'][$block] = $_POST[$block];
-                        }
-                    }
-                    if ( isset($_POST['siteblockkeys']) ) {
-                        $siteblocks = explode(",", $_POST['siteblockkeys']);
-                        foreach($siteblocks as $siteblock) {
-                            self::$db['siteblock'][$siteblock] = $_POST[$siteblock];
-                        }
-                    }
-
-                    self::$db['pages'][self::$curentpage]['title'] = (isset($_POST['title'])) ? $_POST['title'] : self::$db['pages'][self::$curentpage]['title'];
-
-                    self::$db['pages'][self::$curentpage]['active'] = (isset($_POST['active'])) ? 1 : 0;
-                    self::$db['pages'][self::$curentpage]['cache'] = (isset($_POST['cache'])) ? 1 : 0;
-
-                    self::$db['pages'][self::$curentpage]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['pages'][self::$curentpage]['template'];
-
-                    self::$db['pages'][self::$curentpage]['metadescription'] = (isset($_POST['metadescription'])) ? $_POST['metadescription'] : '';
-                    self::$db['pages'][self::$curentpage]['menu_name'] = (isset($_POST['menu_name'])) ? $_POST['menu_name'] : self::$db['pages'][self::$curentpage]['menu_name'];
-
-                    self::$db['pages'][self::$curentpage]['updated'] = date("Y-m-d H:i:s");
-
-
-                    if ( $_POST['ajax'] ) {
-                        $responseJSON = [];   
-                        $responseJSON['status'] = 'success';
-                        $responseJSON['text'] = 'Strona została zaktualizowana. <i class="primal-icon-download"></i>';
-                        
-                        echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
-                    }
-
-                    self::saveDataToJSON(); 
-                }
+                $action = self::makeThisSafe( $_GET['action'] );
+                self::adminAjaxAction($action);
+                die();
             } else {
                 self::renderBackendPage( );   
             }
 		} else {
             self::renderFrontendPage( );
-        }
+        } 
         
-        
-        /* Debugowanie */
-//        echo self::$db['sitename'];
-//        echo '<br>';
-//        echo self::$db['updated'];
-        
-//        echo '<pre>';
-//        print_r(self::$db);
-//        echo '</pre>';
-        
+        /* Debug (on frontend too!) */        
+        if (self::$debug == true) {
+            echo '<hr> <h3>CONTENT of JSON DATABASE - last update - '.self::$db['updated'].' </h3>';
+            echo '<pre>';
+            print_r(self::$db);
+            echo '</pre>';
+        }        
     }
     
-    private static function makeMeSafe( $text ) {
+    private function urlMatch() {
+        $chosenPageAlias = self::$db['indexpage'];  // Default home page
+        
+        /* if subpage was requsted */
+        if ( $page = isset( $_GET['page'] ) ) {
+
+            $pages = self::$db['pages'];
+            $requestedURL = self::makeThisSafe( $_GET['page'] );
+
+            /* login action */
+            if ( $requestedURL == 'login' ) {
+                $chosenPageAlias = self::$db['indexpage'];
+                if ( self::$admin == false ) {
+                    self::$login = true;
+                    if ( isset($_GET['action']) && $_GET['action'] == 'login' ) {
+                        self::loginAjaxAction();                        
+                        die();
+                    }
+                }
+            } else {
+                /* assuming 404 error */
+                $chosenPageAlias = '404';
+
+                /* searching for url in pages */
+                foreach($pages as $index => $page) {
+                    if ($page['url'] == $requestedURL) {
+                        $chosenPageAlias = $index;
+                        break;
+                    }
+                } 
+            }
+        }
+        return $chosenPageAlias;
+    }
+    
+    private function loginAjaxAction() {
+        $responseJSON = [];   
+        $postuser = self::makeThisSafe( $_POST['user'] );
+        $postpassword = self::makeThisSafe( $_POST['password'] );
+        if ($postuser == self::$user && $postpassword == self::$password) {
+            $_SESSION['pah'] = self::$adminSessionHash;
+
+            $responseJSON['status'] = 'success';
+            $responseJSON['text'] = 'Zalogowano. Odświeżanie... <i class="primal-icon-refresh"></i>';
+            $responseJSON['reload'] = true;
+        } else {
+            $responseJSON['status'] = 'error';
+            $responseJSON['text'] = 'Błędny login lub hasło. <i class="primal-icon-cancel"></i>';                            
+        }
+        echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+    }
+        
+    private static function makeThisSafe( $text ) {
         $text = trim($text);
         return $text;
     }
     
+    private static function makeThisSafeHTML( $text ) {
+        $text = trim($text);
+        $text = str_replace("'", "&#39;", $text);
+        $text = str_replace("?", "&#63;", $text);
+        
+        /* ajax form parser hack - cause < and &lt; in JS encodeURIComponent() are the same */
+        $text = str_replace("|<|", "&lt;", $text);
+        $text = str_replace("|>|", "&gt;", $text);
+        
+        return $text;
+    }
+    
+    private static function makeThisSafeURL( $text ) {
+        $text = trim($text);
+        $text = mb_strtolower($text);
+        $text = preg_replace('/\s+/', ' ',$text);
+        $text = preg_replace('/\s/', '-',$text);
+        $text = preg_replace('~[^a-z0-9-_]+~', '', $text);
+        $text = preg_replace('/-+/', '-',$text);        
+        return $text;
+    }
     
 /*
 
@@ -138,7 +164,6 @@ class primal {
             file_put_contents( 'data.json' , $dataJSON);
         }
     
-    
 /*
 
     ██████╗ ███████╗███╗   ██╗██████╗ ███████╗██████╗ 
@@ -150,9 +175,19 @@ class primal {
     
 */
     
-        private static function replaceTagsWithContent( $templateString ) {
-        $page = self::$curentpage;    
-        $pagedata = self::$db['pages'][$page];  
+    private static function replaceTagsWithContent( $templateString ) {
+        
+        $pagedata = self::$db['pages'][self::$pagekey];  
+        $page = $pagedata['url'];    
+        
+        $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
+            
+        /* Replacing subtemplates */
+        $subtemplates = '/\(subtemplate[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (subtemplate key='')
+        do {
+            $templateString = preg_replace_callback($subtemplates, 'self::replaceWithSubtemplate', $templateString);
+        } while (preg_match($subtemplates, $templateString));
+            
         
         /* PHP vars available in template */
         $phpVars = '<?php ';
@@ -162,44 +197,42 @@ class primal {
         $phpVars .= ' $active='.$pagedata['active'].'; ';
         $phpVars .= ' $cache='.$pagedata['cache'].'; ';
         $phpVars .= ' $menu_name="'.$pagedata['menu_name'].'"; ';
-        $phpVars .= ' $url="'.$page.'"; ';
+        $phpVars .= ' $url="'.$pagedata['url'].'"; ';
         $phpVars .= ' $cmscatalog="'.self::$cmscatalog.'"; ';
         $phpVars .= ' $themecatalog="'.self::$cmscatalog.'themes/'.self::$theme.'/"; ';
         $phpVars .= ' $template="'.$pagedata['template'].'"; ';
         $phpVars .= ' $siteblocks=\''.json_encode( self::$db['siteblock'] , JSON_UNESCAPED_UNICODE).'\'; $siteblock=json_decode( $siteblocks , true ); ';
         $phpVars .= ' $blocks=\''.json_encode( $pagedata['block'] , JSON_UNESCAPED_UNICODE).'\'; $block=json_decode( $blocks , true ); ';
+            
         
+//        
         $templateString = str_replace("(sitename)", self::$db['sitename'], $templateString);
         $templateString = str_replace("(title)", $pagedata['title'], $templateString);
         $templateString = str_replace("(metadescription)", $pagedata['metadescription'], $templateString);
-        $templateString = str_replace("(url)", $page, $templateString);
+        $templateString = str_replace("(url)", $pagedata['url'], $templateString);
         $templateString = str_replace("(cmscatalog)", self::$cmscatalog, $templateString);
         $templateString = str_replace("(themecatalog)", self::$cmscatalog.'themes/'.self::$theme.'/', $templateString);
         $templateString = str_replace("(template)", $pagedata['template'], $templateString);
         
-        
-        $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
-        
         if (self::$admin == true) {
             /* Page blocks */
-            $blocks = '/\(block[^\)]+[key|name|id|code]=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (block key='')
+            $blocks = '/\(block[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (block key='')
             $templateString = preg_replace_callback($blocks, 'self::generateInputsWithContent', $templateString);
         
             /* Global blocks */
-            $siteblocks = '/\(siteblock[^\)]+[key|name|id|code]=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (siteblock key='')
+            $siteblocks = '/\(siteblock[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (siteblock key='')
             $templateString = preg_replace_callback($siteblocks, 'self::generateInputsWithContent', $templateString);
-            
             
             /* Admin vars */
             $phpVars .= ' $admin=true; ';
             $phpVars .= ' $availableTemplatesArray=\''.json_encode( self::getAvailableTemplates() , JSON_UNESCAPED_UNICODE).'\'; $availableTemplates=json_decode( $availableTemplatesArray , true ); ';
         } else {
             /* Page blocks */
-            $blocks = '/\(block[^\)]+[key|name|id|code]=\'('.$allowedNames.')\'[^\)]*\)/'; // return name for (block name='')
+            $blocks = '/\(block[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return name for (block name='')
             $templateString = preg_replace_callback($blocks, 'self::putContentInBlocks', $templateString);
         
             /* Global blocks */
-            $blocks = '/\(siteblock[^\)]+[key|name|id|code]=\'('.$allowedNames.')\'[^\)]*\)/'; // return name for (siteblock name='')
+            $blocks = '/\(siteblock[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return name for (siteblock name='')
             $templateString = preg_replace_callback($blocks, 'self::putContentInSiteblocks', $templateString);
             
             $phpVars .= ' $admin=false; ';
@@ -216,6 +249,19 @@ class primal {
         return $templateString;
     }
     
+    private static function replaceWithSubtemplate( $matches ) {
+        $subtemplatelocation = 'themes/'.self::$theme.'/template/subtemplate/'.$matches[1]. '.php';   
+        
+        if ( file_exists( $subtemplatelocation ) ) {
+            /* There is subtemplate for this block */
+            $subtemplateString = file_get_contents( $subtemplatelocation );            
+            
+            return $subtemplateString;
+        } else {
+            /* No data */
+            return '<?php /* subtemplate '.$matches[1].' was not found */ ?>';
+        }
+    }
     
 /*
 
@@ -227,16 +273,25 @@ class primal {
     ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
 
 */
-    
-    
-    /* Rendering front pages */
     private static function renderFrontendPage( ) {
-        $page = self::$curentpage;
+        $page = self::$pagekey;
         
         $pagedata = self::$db['pages'][$page];
         
         $templatelocation = 'themes/'.self::$theme.'/template/'.$pagedata['template']. '.php';        
-        $cachelocation = 'cache/'.$pagedata['url']. '.php';  
+        $cachelocation= 'cache/'.$pagedata['url']. '.php';  
+        
+        if (self::$login == true) {
+            $cachelocationPHP = 'cache/login.php';  
+            $template = file_get_contents( $templatelocation );
+            $templateWithContent = self::replaceTagsWithContent($template, $pagedata);
+            $templateWithContent = self::loginPanel($templateWithContent);
+            file_put_contents( $cachelocation , $templateWithContent ); 
+            require_once( $cachelocation ); 
+            
+            return;
+        }
+        
         
         if ( file_exists( $cachelocation ) && $pagedata['cache'] == 1 && isset($pagedata['cached']) ) {
             $update_time = new DateTime($pagedata['updated']);
@@ -246,34 +301,35 @@ class primal {
             if ($update_time < $cache_time) {
                 $cachedtemplate = file_get_contents( $cachelocation );
                 require_once( $cachelocation ); 
-                echo '<hr>';
-                echo 'CACHE';
+//                echo '<hr>';
+//                echo 'CACHE';
                 return;
             }
         }
 		
         if ( file_exists( $templatelocation ) ) {
             $template = file_get_contents( $templatelocation );
-            $templateWithContent = self::replaceTagsWithContent($template, $pagedata);
-                
+            $templateWithContent = self::replaceTagsWithContent($template, $pagedata);            
+            
+            
             file_put_contents( $cachelocation , $templateWithContent );          
             
             if ($pagedata['cache'] == 1) {
-                self::$db['pages'][self::$curentpage]['cached'] = date("Y-m-d H:i:s");
+                self::$db['pages'][self::$pagekey]['cached'] = date("Y-m-d H:i:s");
                 self::saveDataToJSON();   
             }
             require_once( $cachelocation ); 
-            echo '<hr>';
-            echo 'RENDER';
+//            echo '<hr>';
+//            echo 'RENDER';
             return;
         }
     }	
     
     private static function putContentInBlocks( $matches ) {
         
-        if ( isset( self::$db['pages'][self::$curentpage]['block'][$matches[1]] ) ) {
+        if ( isset( self::$db['pages'][self::$pagekey]['block'][$matches[1]] ) ) {
             /* There is data for this block */
-            $dataToPutInBlock = self::$db['pages'][self::$curentpage]['block'][$matches[1]];
+            $dataToPutInBlock = self::$db['pages'][self::$pagekey]['block'][$matches[1]];
             
             
             /* Only digits */
@@ -307,6 +363,15 @@ class primal {
             return '';
         }
     }
+    
+    private static function loginPanel( $templateWithContent ) {
+        
+        $login_template = file_get_contents( 'admin/template/login.php' );
+         
+        $templateWithContent = str_replace("</body>", $login_template."</body>", $templateWithContent);
+        
+        return $templateWithContent;
+    }
 
 /*
     
@@ -320,7 +385,7 @@ class primal {
 */                               
       
     private static function renderBackendPage( ) {
-        $page = self::$curentpage;
+        $page = self::$pagekey;
         
         $pagedata = self::$db['pages'][$page];
         
@@ -336,9 +401,7 @@ class primal {
             file_put_contents( $admincachelocation , $templateWithContent );          
             
 
-            require_once( $admincachelocation ); 
-//            echo '<hr>';
-//            echo 'RENDER - admin';
+            require_once( $admincachelocation );
             return;
         }
     }
@@ -347,8 +410,8 @@ class primal {
         $blockcode = $matches[0];
         if (strpos($blockcode, '(block') !== false) {
             
-            if ( isset( self::$db['pages'][self::$curentpage]['block'][$matches[1]] ) ) {
-                $content = self::$db['pages'][self::$curentpage]['block'][$matches[1]];
+            if ( isset( self::$db['pages'][self::$pagekey]['block'][$matches[1]] ) ) {
+                $content = self::$db['pages'][self::$pagekey]['block'][$matches[1]];
             } else {
                 $content = '';
             }
@@ -386,8 +449,8 @@ class primal {
         
         return '<div id="cms-field-'.$tagCode.'" class="wysiwyg '.$tagType.'"  data-'.$type.'-key="'.$tagCode.'" data-block-update="false">'.$blockcontent.'</div>';
     }
-    
-     private static function adminPanel( $templateWithContent ) {
+        
+    private static function adminPanel( $templateWithContent ) {
         
         $subpage_template = file_get_contents( 'admin/template/subpage_fields.php' );
          
@@ -409,9 +472,63 @@ class primal {
         return $templates;
     }
     
+    private static function adminAjaxAction($action) {
+        switch ($action) {
+            case 'logout':
+                unset($_SESSION['pah']);
+                $responseJSON['status'] = 'success';
+                $responseJSON['text'] = 'Wylogowano. Odświeżanie... <i class="primal-icon-refresh"></i>';
+                $responseJSON['reload'] = true;
+
+                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+
+                break;
+            case 'page_update':
+                // Saving blocks                
+                if ( isset($_POST['blockkeys']) ) {
+                    $blocks = explode(",", $_POST['blockkeys']);
+                    foreach($blocks as $block) {
+                        self::$db['pages'][self::$pagekey]['block'][$block] = self::makeThisSafeHTML($_POST[$block]);
+                    }
+                }
+                if ( isset($_POST['siteblockkeys']) ) {
+                    $siteblocks = explode(",", $_POST['siteblockkeys']);
+                    foreach($siteblocks as $siteblock) {
+                        self::$db['siteblock'][$siteblock] = self::makeThisSafeHTML($_POST[$siteblock]);
+                    }
+                }
+
+                self::$db['pages'][self::$pagekey]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['pages'][self::$pagekey]['title'];
+
+                self::$db['pages'][self::$pagekey]['active'] = (isset($_POST['active'])) ? 1 : 0;
+                self::$db['pages'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0;
+
+                self::$db['pages'][self::$pagekey]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['pages'][self::$pagekey]['template'];
+
+                self::$db['pages'][self::$pagekey]['metadescription'] = (isset($_POST['metadescription'])) ? self::makeThisSafe( $_POST['metadescription'] ) : '';
+                self::$db['pages'][self::$pagekey]['menu_name'] = (isset($_POST['menu_name'])) ? self::makeThisSafe( $_POST['menu_name'] ) : self::$db['pages'][self::$pagekey]['menu_name'];
+
+                self::$db['pages'][self::$pagekey]['updated'] = date("Y-m-d H:i:s");
+                
+                
+                $responseJSON = [];
+                
+                $postedURL = self::makeThisSafe( $_POST['url'] );
+                if ( $postedURL != self::$db['pages'][self::$pagekey]['url']) {
+                    self::$db['pages'][self::$pagekey]['url'] = self::makeThisSafeURL( $postedURL );
+                    $responseJSON['newurl'] = self::$cmscatalog.self::makeThisSafeURL( $postedURL );
+                    $responseJSON['reload'] = true;
+                }
+                $responseJSON['status'] = 'success';
+                $responseJSON['text'] = 'Strona została zaktualizowana. <i class="primal-icon-download"></i>';
+                self::saveDataToJSON(); 
+                
+                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+                break;
+        }
+    }
+    
 }
-
-
     
 primal::init();
 
