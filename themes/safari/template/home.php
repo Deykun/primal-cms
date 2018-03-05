@@ -11,12 +11,7 @@
                 <div class="row">
                     <div class="col-12 col-xl-3 child-middle">
                         <nav class="nav-top">
-                            <ul>
-                                <li><a href="/" class="active">strona główa</a></li>
-                                <li><a href="/dokumentacja">dokumentacja</a></li>
-                                <li><a href="/demo">demo</a></li>
-                                <li><a href="https://github.com/deykun/primal-cms" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
-                            </ul>
+                            (subtemplate key='menu')
                         </nav>
                     </div>
                     <div class="col-12 col-xl-9 bg-green child-middle about-img">

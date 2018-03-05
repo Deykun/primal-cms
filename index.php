@@ -30,15 +30,15 @@ class primal {
     private static $db = [];
     public static $pagekey = '';    
     
-	public static function init() {        
+	public static function init() {  
         if (isset($_SESSION['pah']) && $_SESSION['pah'] == self::$adminSessionHash) {
 			self::$admin = true;
 		}
         
         self::$db = self::getDataFromJSON();
-        
         self::$pagekey = self::urlMatch();
                 
+        
         if ( self::$admin == true ) {
             if (isset($_GET['action'])) {
                 $action = self::makeThisSafe( $_GET['action'] );
@@ -66,7 +66,7 @@ class primal {
         /* if subpage was requsted */
         if ( $page = isset( $_GET['page'] ) ) {
 
-            $pages = self::$db['pages'];
+            $pages = self::$db['page'];
             $requestedURL = self::makeThisSafe( $_GET['page'] );
 
             /* login action */
@@ -177,16 +177,18 @@ class primal {
     
     private static function replaceTagsWithContent( $templateString ) {
         
-        $pagedata = self::$db['pages'][self::$pagekey];  
+        $pagedata = self::$db['page'][self::$pagekey];  
         $page = $pagedata['url'];    
         
         $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
             
         /* Replacing subtemplates */
         $subtemplates = '/\(subtemplate[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (subtemplate key='')
+        $i = 0;
         do {
             $templateString = preg_replace_callback($subtemplates, 'self::replaceWithSubtemplate', $templateString);
-        } while (preg_match($subtemplates, $templateString));
+            $i++;
+        } while ( preg_match($subtemplates, $templateString) && $i < 10 );
             
         
         /* PHP vars available in template */
@@ -202,10 +204,17 @@ class primal {
         $phpVars .= ' $themecatalog="'.self::$cmscatalog.'themes/'.self::$theme.'/"; ';
         $phpVars .= ' $template="'.$pagedata['template'].'"; ';
         $phpVars .= ' $siteblocks=\''.json_encode( self::$db['siteblock'] , JSON_UNESCAPED_UNICODE).'\'; $siteblock=json_decode( $siteblocks , true ); ';
-        $phpVars .= ' $blocks=\''.json_encode( $pagedata['block'] , JSON_UNESCAPED_UNICODE).'\'; $block=json_decode( $blocks , true ); ';
-            
+        $phpVars .= ' $blocks=\''.json_encode( $pagedata['block'] , JSON_UNESCAPED_UNICODE).'\'; $block=json_decode( $blocks , true ); ';        
+        $menus = self::$db['menu'];
         
-//        
+        $menuPHP = [];
+        
+        foreach($menus as $menuKey => $menu) {
+            $menuPHP[] = self::renderMenu( $menu );
+        }
+        
+        $phpVars .= ' $menus=\''.json_encode( $menuPHP , JSON_UNESCAPED_UNICODE).'\'; $menu=json_decode( $menus , true ); ';       
+        
         $templateString = str_replace("(sitename)", self::$db['sitename'], $templateString);
         $templateString = str_replace("(title)", $pagedata['title'], $templateString);
         $templateString = str_replace("(metadescription)", $pagedata['metadescription'], $templateString);
@@ -263,6 +272,69 @@ class primal {
         }
     }
     
+    private static function renderMenu( $menu, $checkActive = 0 ) {
+        $menuPHP = [];
+        $active = false; 
+        
+        foreach( $menu as $key => $element ) {
+            $elementPHP = [];
+            
+            if ( $element['type'] == 'key' ) {
+                $elementPHP['name'] = isset( self::$db['page'][ $element['key'] ]['menu_name'] ) ? self::$db['page'][ $element['key'] ]['menu_name'] : $element['key'];
+                
+                
+                if ( $element['key'] == self::$db['indexpage'] ) {
+                    $elementPHP['url'] = self::$cmscatalog;
+                } else if ( isset( self::$db['page'][ $element['key'] ]['url'] ) ) {
+                    $elementPHP['url'] =  self::$cmscatalog.self::$db['page'][ $element['key'] ]['url'];
+                } else {
+                    $elementPHP['url'] = self::$cmscatalog.'404';
+                }
+                
+                if ( $element['key'] == self::$pagekey ) {
+                    $elementPHP['active'] = true;
+                    $active = true;
+                }
+            } else {
+                $elementPHP['name'] = $element['name'];
+            }
+            
+            if ( isset( $element['url'] ) ) {
+                $elementPHP['url'] = $element['url'];
+            }
+            
+            /* Submenu and active from submenu by recursion */
+            if ( isset( $element['menu'] ) ) {
+                $elementPHP['menu'] = self::renderMenu( $element['menu'] );
+                
+                if ( !isset( $elementPHP['active'] ) ) {
+                    $submenu = self::renderMenu( $element['menu'], 1 );
+                    
+                    if ( $submenu[1] == true ) {
+                        $elementPHP['active'] = true;
+                        $active = true;
+                    }
+                    
+                    $elementPHP['menu'] = $submenu[0];                    
+                } 
+            }
+            
+            if ( isset( $element['target'] ) ) {
+                $elementPHP['target'] = $element['target'];
+            }
+            
+            
+            $menuPHP[] = $elementPHP;
+        }
+        
+        if ($checkActive == 1) {
+            return [ $menuPHP, $active ];    
+        } else {
+            return $menuPHP;
+        }
+        
+    }
+    
 /*
 
     ███████╗██████╗  ██████╗ ███╗   ██╗████████╗
@@ -276,7 +348,7 @@ class primal {
     private static function renderFrontendPage( ) {
         $page = self::$pagekey;
         
-        $pagedata = self::$db['pages'][$page];
+        $pagedata = self::$db['page'][$page];
         
         $templatelocation = 'themes/'.self::$theme.'/template/'.$pagedata['template']. '.php';        
         $cachelocation= 'cache/'.$pagedata['url']. '.php';  
@@ -315,7 +387,7 @@ class primal {
             file_put_contents( $cachelocation , $templateWithContent );          
             
             if ($pagedata['cache'] == 1) {
-                self::$db['pages'][self::$pagekey]['cached'] = date("Y-m-d H:i:s");
+                self::$db['page'][self::$pagekey]['cached'] = date("Y-m-d H:i:s");
                 self::saveDataToJSON();   
             }
             require_once( $cachelocation ); 
@@ -327,9 +399,9 @@ class primal {
     
     private static function putContentInBlocks( $matches ) {
         
-        if ( isset( self::$db['pages'][self::$pagekey]['block'][$matches[1]] ) ) {
+        if ( isset( self::$db['page'][self::$pagekey]['block'][$matches[1]] ) ) {
             /* There is data for this block */
-            $dataToPutInBlock = self::$db['pages'][self::$pagekey]['block'][$matches[1]];
+            $dataToPutInBlock = self::$db['page'][self::$pagekey]['block'][$matches[1]];
             
             
             /* Only digits */
@@ -387,7 +459,7 @@ class primal {
     private static function renderBackendPage( ) {
         $page = self::$pagekey;
         
-        $pagedata = self::$db['pages'][$page];
+        $pagedata = self::$db['page'][$page];
         
         $templatelocation = 'themes/'.self::$theme.'/template/'.$pagedata['template']. '.php';
         $admincachelocation = 'admincache/'.$pagedata['url']. '.php';
@@ -410,8 +482,8 @@ class primal {
         $blockcode = $matches[0];
         if (strpos($blockcode, '(block') !== false) {
             
-            if ( isset( self::$db['pages'][self::$pagekey]['block'][$matches[1]] ) ) {
-                $content = self::$db['pages'][self::$pagekey]['block'][$matches[1]];
+            if ( isset( self::$db['page'][self::$pagekey]['block'][$matches[1]] ) ) {
+                $content = self::$db['page'][self::$pagekey]['block'][$matches[1]];
             } else {
                 $content = '';
             }
@@ -488,7 +560,7 @@ class primal {
                 if ( isset($_POST['blockkeys']) ) {
                     $blocks = explode(",", $_POST['blockkeys']);
                     foreach($blocks as $block) {
-                        self::$db['pages'][self::$pagekey]['block'][$block] = self::makeThisSafeHTML($_POST[$block]);
+                        self::$db['page'][self::$pagekey]['block'][$block] = self::makeThisSafeHTML($_POST[$block]);
                     }
                 }
                 if ( isset($_POST['siteblockkeys']) ) {
@@ -498,24 +570,24 @@ class primal {
                     }
                 }
 
-                self::$db['pages'][self::$pagekey]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['pages'][self::$pagekey]['title'];
+                self::$db['page'][self::$pagekey]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['page'][self::$pagekey]['title'];
 
-                self::$db['pages'][self::$pagekey]['active'] = (isset($_POST['active'])) ? 1 : 0;
-                self::$db['pages'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0;
+                self::$db['page'][self::$pagekey]['active'] = (isset($_POST['active'])) ? 1 : 0;
+                self::$db['page'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0;
 
-                self::$db['pages'][self::$pagekey]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['pages'][self::$pagekey]['template'];
+                self::$db['page'][self::$pagekey]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['page'][self::$pagekey]['template'];
 
-                self::$db['pages'][self::$pagekey]['metadescription'] = (isset($_POST['metadescription'])) ? self::makeThisSafe( $_POST['metadescription'] ) : '';
-                self::$db['pages'][self::$pagekey]['menu_name'] = (isset($_POST['menu_name'])) ? self::makeThisSafe( $_POST['menu_name'] ) : self::$db['pages'][self::$pagekey]['menu_name'];
+                self::$db['page'][self::$pagekey]['metadescription'] = (isset($_POST['metadescription'])) ? self::makeThisSafe( $_POST['metadescription'] ) : '';
+                self::$db['page'][self::$pagekey]['menu_name'] = (isset($_POST['menu_name'])) ? self::makeThisSafe( $_POST['menu_name'] ) : self::$db['page'][self::$pagekey]['menu_name'];
 
-                self::$db['pages'][self::$pagekey]['updated'] = date("Y-m-d H:i:s");
+                self::$db['page'][self::$pagekey]['updated'] = date("Y-m-d H:i:s");
                 
                 
                 $responseJSON = [];
                 
                 $postedURL = self::makeThisSafe( $_POST['url'] );
-                if ( $postedURL != self::$db['pages'][self::$pagekey]['url']) {
-                    self::$db['pages'][self::$pagekey]['url'] = self::makeThisSafeURL( $postedURL );
+                if ( $postedURL != self::$db['page'][self::$pagekey]['url']) {
+                    self::$db['page'][self::$pagekey]['url'] = self::makeThisSafeURL( $postedURL );
                     $responseJSON['newurl'] = self::$cmscatalog.self::makeThisSafeURL( $postedURL );
                     $responseJSON['reload'] = true;
                 }
@@ -531,5 +603,4 @@ class primal {
 }
     
 primal::init();
-
 ?>

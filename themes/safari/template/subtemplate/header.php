@@ -7,7 +7,6 @@
 <?php else: ?>
     <title>(title) - (sitename)</title>
 <?php endif ?>
-
 <meta name="description" content="(metadescription)">
 <meta property="og:title" content="(title) - (sitename)">
 <meta property="og:description" content="(metadescription)">

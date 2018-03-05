@@ -12,12 +12,7 @@
                 <div class="row">
                     <div class="col-12 col-lg-3 child-middle">
                         <nav class="nav-top">
-                            <ul>
-                                <li><a href="/">strona główa</a></li>
-                                <li><a href="/dokumentacja" class="active">dokumentacja</a></li>
-                                <li><a href="/demo">demo</a></li>
-                                <li><a href="https://github.com/deykun/primal-cms" target="_blank"><i class="icon-flow-branch"></i> github</a></li>
-                            </ul>
+                            (subtemplate key='menu')
                         </nav>
                     </div>
                     <div class="col-12 col-lg-9 bg-black child-middle">
@@ -27,7 +22,7 @@
                     </div>
                 </div>
             </div>
-        </section>
+        </section>        
         <section>
             <div class="container">
                 <div class="row">
