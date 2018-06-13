@@ -5,8 +5,8 @@ Prosty CMS z bazą danych w pliku JSON.
 * Edycja bloków WYSIWYG bezpośrednio na stronie, zmiana <title>, meta description
 * Przyjazne linki
 * Szablony wewnątrz plików .php (block name="top") generuje blok WYSIWYG na froncie
-* Dynamiczne menu (póki co bez kreatora w panelu administracyjnym)
+* Menu generowane z poziomu panelu
 * Pamięć podręczna
 * Logowanie i wylogowanie
 
-![edycja treści](http://deykun.it/lab/primal/edycja-strony.gif)
+![generowanie menu](http://deykun.it/lab/primal/menu.gif) 
