@@ -9,6 +9,8 @@
 ██║     ██║  ██║██║██║ ╚═╝ ██║██║  ██║███████╗ ╚██████╗██║ ╚═╝ ██║███████║
 ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝  ╚═════╝╚═╝     ╚═╝╚══════╝
 
+Szymon Tondowski - https://github.com/deykun/primal-cms
+
 */
 
 session_start();
@@ -23,9 +25,10 @@ class primal {
     private static $user = 'admin';
     private static $password = 'admin';
     private static $adminSessionHash = 'sjhgsjh';
+//    private static $cmscatalog = '/'; // site.com → '/', site.com/blog → '/blog/'
     private static $cmscatalog = '/'; // site.com → '/', site.com/blog → '/blog/'
     private static $theme = 'safari';
-    private static $minifyHTML = true;
+    private static $minifyHTML = true; 
 
     private static $db = [];
     public static $pagekey = '';    
@@ -61,7 +64,7 @@ class primal {
     }
     
     private function urlMatch() {
-        $chosenPageAlias = self::$db['indexpage'];  // Default home page
+        $chosenPageAlias = self::$db['homepage'];  // Default home page
         
         /* if subpage was requsted */
         if ( $page = isset( $_GET['page'] ) ) {
@@ -71,7 +74,7 @@ class primal {
 
             /* login action */
             if ( $requestedURL == 'login' ) {
-                $chosenPageAlias = self::$db['indexpage'];
+                $chosenPageAlias = self::$db['homepage'];
                 if ( self::$admin == false ) {
                     self::$login = true;
                     if ( isset($_GET['action']) && $_GET['action'] == 'login' ) {
@@ -183,7 +186,7 @@ class primal {
         $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
             
         /* Replacing subtemplates */
-        $subtemplates = '/\(subtemplate[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (subtemplate key='')
+        $subtemplates = '/\(subtemplate[^\)]+name=\'('.$allowedNames.')\'[^\)]*\)/'; // return key for (subtemplate key='')
         $i = 0;
         do {
             $templateString = preg_replace_callback($subtemplates, 'self::replaceWithSubtemplate', $templateString);
@@ -198,6 +201,7 @@ class primal {
         $phpVars .= ' $metadescription="'.$pagedata['metadescription'].'"; ';
         $phpVars .= ' $active='.$pagedata['active'].'; ';
         $phpVars .= ' $cache='.$pagedata['cache'].'; ';
+        $phpVars .= ' $seoindex='.$pagedata['seoindex'].'; ';
         $phpVars .= ' $menu_name="'.$pagedata['menu_name'].'"; ';
         $phpVars .= ' $url="'.$pagedata['url'].'"; ';
         $phpVars .= ' $cmscatalog="'.self::$cmscatalog.'"; ';
@@ -210,7 +214,7 @@ class primal {
         $menuPHP = [];
         
         foreach($menus as $menuKey => $menu) {
-            $menuPHP[] = self::renderMenu( $menu );
+            $menuPHP[$menuKey] = self::renderMenu( $menu );
         }
         
         $phpVars .= ' $menus=\''.json_encode( $menuPHP , JSON_UNESCAPED_UNICODE).'\'; $menu=json_decode( $menus , true ); ';       
@@ -235,6 +239,8 @@ class primal {
             /* Admin vars */
             $phpVars .= ' $admin=true; ';
             $phpVars .= ' $availableTemplatesArray=\''.json_encode( self::getAvailableTemplates() , JSON_UNESCAPED_UNICODE).'\'; $availableTemplates=json_decode( $availableTemplatesArray , true ); ';
+            $phpVars .= ' $homepage="'.self::$db['homepage'].'";';
+            $phpVars .= ' $availablePagesArray=\''.json_encode( self::getAvailablePages() , JSON_UNESCAPED_UNICODE).'\'; $availablePages=json_decode( $availablePagesArray , true ); ';
         } else {
             /* Page blocks */
             $blocks = '/\(block[^\)]+key=\'('.$allowedNames.')\'[^\)]*\)/'; // return name for (block name='')
@@ -252,18 +258,46 @@ class primal {
             
             
         if (self::$minifyHTML == true ) {
-            $templateString = preg_replace('/\s+/', ' ',$templateString);
+            $strip = '/(\(strip\))(.*?)(\(\/strip\))/sm'; // remove whitespaces and linebreakes
+            $templateString = preg_replace_callback($strip, 'self::removeSpaces', $templateString);
+        } else {
+            $templateString = str_replace("(strip)", '', $templateString);
+            $templateString = str_replace("(/strip)", '', $templateString);
         }
         
         return $templateString;
     }
     
     private static function replaceWithSubtemplate( $matches ) {
-        $subtemplatelocation = 'themes/'.self::$theme.'/template/subtemplate/'.$matches[1]. '.php';   
-        
+        $subtemplatelocation = 'themes/'.self::$theme.'/template/subtemplate/'.$matches[1]. '.php';           
         if ( file_exists( $subtemplatelocation ) ) {
             /* There is subtemplate for this block */
             $subtemplateString = file_get_contents( $subtemplatelocation );            
+            $subtemplateParams = '';
+            /* Searching for parameters of subtemplate for example: menu='top' to make $key['menu'] = "top" */
+            $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
+            preg_match_all('/ '.$allowedNames.'=\''.$allowedNames.'\'/', $matches[0] , $paramsMatches);  
+            if ( count($paramsMatches) > 0) {
+                $subtemplateParams = ' <?php $key = []; ';
+                foreach($paramsMatches as $index => $param) {
+                    preg_match_all('/('.$allowedNames.')=\'('.$allowedNames.')\'/', $matches[0] , $paramMatches);  
+                    $paramsTransposition = [];
+                    foreach($paramMatches[0] as $index => $param) {
+                        $key = $paramMatches[1][$index];
+                        $value = $paramMatches[2][$index];
+                        
+                        if (!empty($key) && !empty($value)) {
+                            $subtemplateParams .= ' $key["'.$key.'"] = "'.$value.'"; ';   
+                        }
+                    }
+                } 
+                
+                $subtemplateParams .= ' ?>';   
+            }
+            
+            $subtemplateString = $subtemplateParams.$subtemplateString;
+            
+
             
             return $subtemplateString;
         } else {
@@ -279,11 +313,16 @@ class primal {
         foreach( $menu as $key => $element ) {
             $elementPHP = [];
             
-            if ( $element['type'] == 'key' ) {
-                $elementPHP['name'] = isset( self::$db['page'][ $element['key'] ]['menu_name'] ) ? self::$db['page'][ $element['key'] ]['menu_name'] : $element['key'];
+            if ( isset( $element['url'] ) ) {
+                $elementPHP['type'] = 'url';
+                $elementPHP['url'] = $element['url'];
+            }
+            
+            if ( $element['type'] == 'cms' ) {
+                $elementPHP['type'] = 'cms';
+                $elementPHP['key'] = $element['key'];
                 
-                
-                if ( $element['key'] == self::$db['indexpage'] ) {
+                if ( $element['key'] == self::$db['homepage'] ) {
                     $elementPHP['url'] = self::$cmscatalog;
                 } else if ( isset( self::$db['page'][ $element['key'] ]['url'] ) ) {
                     $elementPHP['url'] =  self::$cmscatalog.self::$db['page'][ $element['key'] ]['url'];
@@ -295,13 +334,12 @@ class primal {
                     $elementPHP['active'] = true;
                     $active = true;
                 }
+                
+                $elementPHP['name'] = isset( self::$db['page'][ $element['key'] ]['menu_name'] ) ? self::$db['page'][ $element['key'] ]['menu_name'] : $element['key'];          
             } else {
                 $elementPHP['name'] = $element['name'];
             }
-            
-            if ( isset( $element['url'] ) ) {
-                $elementPHP['url'] = $element['url'];
-            }
+
             
             /* Submenu and active from submenu by recursion */
             if ( isset( $element['menu'] ) ) {
@@ -321,6 +359,10 @@ class primal {
             
             if ( isset( $element['target'] ) ) {
                 $elementPHP['target'] = $element['target'];
+            }
+            
+            if ( isset( $element['rel'] ) ) {
+                $elementPHP['rel'] = $element['rel'];
             }
             
             
@@ -436,6 +478,10 @@ class primal {
         }
     }
     
+    private static function removeSpaces( $matches ) {
+        return preg_replace('/\s+/', ' ', $matches[2]);
+    }
+    
     private static function loginPanel( $templateWithContent ) {
         
         $login_template = file_get_contents( 'admin/template/login.php' );
@@ -524,14 +570,23 @@ class primal {
         
     private static function adminPanel( $templateWithContent ) {
         
-        $subpage_template = file_get_contents( 'admin/template/subpage_fields.php' );
+        $subpage_template = file_get_contents( 'admin/template/admin.php' );
          
         $templateWithContent = str_replace("</body>", $subpage_template."</body>", $templateWithContent);
         
         return $templateWithContent;
     }
     
-    private static function getAvailableTemplates () {
+    private static function getAvailablePages() {        
+        $pages = self::$db['page'];
+        $pagesArray = [];
+        foreach($pages as $index => $page) {
+            $pagesArray[$index] = $page['menu_name'];
+        } 
+        return $pagesArray;
+    }
+    
+    private static function getAvailableTemplates() {
         $filesInDir = scandir('themes/'.self::$theme.'/template/');
         
         $templates = [];
@@ -573,7 +628,8 @@ class primal {
                 self::$db['page'][self::$pagekey]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['page'][self::$pagekey]['title'];
 
                 self::$db['page'][self::$pagekey]['active'] = (isset($_POST['active'])) ? 1 : 0;
-                self::$db['page'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0;
+                self::$db['page'][self::$pagekey]['seoindex'] = (isset($_POST['seoindex'])) ? 1 : 0;
+                self::$db['page'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0; 
 
                 self::$db['page'][self::$pagekey]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['page'][self::$pagekey]['template'];
 
@@ -593,6 +649,26 @@ class primal {
                 }
                 $responseJSON['status'] = 'success';
                 $responseJSON['text'] = 'Strona została zaktualizowana. <i class="primal-icon-download"></i>';
+                self::saveDataToJSON(); 
+                
+                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+                break;
+                
+            case 'site_update':
+                
+                self::$db['sitename'] = (isset($_POST['sitename'])) ? self::makeThisSafe($_POST['sitename']) : self::$db['sitename'];
+                self::$db['homepage'] = (isset($_POST['homepage'])) ? self::makeThisSafe($_POST['homepage']) : self::$db['homepage'];                
+                
+                if ( isset($_POST['menukeys']) ) {
+                    $menukeys = str_replace('&qout;','"',$_POST['menukeys']);
+                    $menukeys = self::makeThisSafe( $menukeys );
+                    self::$db['menu'] = json_decode( $menukeys , true );
+                }
+                
+                $responseJSON = [];
+                $responseJSON['reload'] = true;
+                $responseJSON['status'] = 'success';
+                $responseJSON['text'] = 'Portal został zaktualizowany. <i class="primal-icon-download"></i>';
                 self::saveDataToJSON(); 
                 
                 echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);

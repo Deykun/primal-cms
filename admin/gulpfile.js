@@ -34,10 +34,12 @@ gulp.task('css', function (){
 
 gulp.task('default', function(){
 
-//    browserSync.init({
-//        server: "./"
-//    });
-//    gulp.watch(["./js/*.js", "./css/*.css"], browserSync.reload);
+    /* My local version */
+    browserSync.init({
+        proxy: "http://localhost/cms-primal/"
+    });
+    
+    gulp.watch(["./assets/css/*.css","./assets/js/*.js", "./template/*.php"], browserSync.reload);
 
     gulp.watch("./dev/sass/*.scss", function(event){
         gulp.run('css');

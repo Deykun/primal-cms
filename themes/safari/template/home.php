@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!DOCTYPE html>(strip)
 <html lang="pl">
 
 <head>
-(subtemplate key='header')
+(subtemplate name='header')
 </head>
 <body>
     <main>
@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-12 col-xl-3 child-middle">
                         <nav class="nav-top">
-                            (subtemplate key='menu')
+                            (subtemplate name='menu' menu='top')
                         </nav>
                     </div>
                     <div class="col-12 col-xl-9 bg-green child-middle about-img">
@@ -58,4 +58,4 @@
     </div>
     <script src="(themecatalog)assets/js/script.js"></script>
 </body>
-</html>
+</html>(/strip)

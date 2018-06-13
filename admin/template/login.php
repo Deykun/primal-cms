@@ -1,5 +1,5 @@
 <link href="<?php echo $cmscatalog; ?>admin/assets/css/stylesheet.min.css" rel="stylesheet">
-
+<div id="primal-admin-panel">
     <input class="primal-tab-radio" id="tab-login-form" type="checkbox" name="primaltab">
     <div class="primal-tab" id="primal-cms-login-form">
         <form id="primal-login-form" action="index.php?page=login&action=login" method="post" class="primal-tab-content primal-form">
@@ -13,13 +13,9 @@
                 <label for="password">Hasło</label>
             </div>
             <button class="primal-save">Zaloguj się <i class="primal-icon-user"></i></button>
-            <div class="cms-copyrights">
-                Primal CMS
-            </div>
         </form>
     </div>
-    
-    <input class="primal-tab-radio" id="tab-cms-close-all" type="radio" name="primaltab" checked>
+</div>
     <div id="primal-reaction"></div>
     <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/tinymce.min.js"></script>
     <script src="<?php echo $cmscatalog; ?>admin/assets/other/tinymce/langs/pl.js"></script>

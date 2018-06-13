@@ -4,12 +4,9 @@
 $dark: #100e0c;
 
 $green: #9dc500;
-$green: #86a022;
 
 $yellow: #ffb400;
 $red: #ff2e02;
-
-$lightText: lighten($dark, 50%);
 
 $lightGray: #e3e3e3;
 
@@ -30,19 +27,17 @@ $softBounce: cubic-bezier(0.68, -0.55, 0.265, 2.15);
 //	$softBounce: cubic-bezier(0.68, -0.55, 0.265, 1.30);
 @import 'vicons';
 
-@import url('https://fonts.googleapis.com/css?family=Poppins:300,400,600&subset=latin-ext');
 body {
     position: relative;
+
+    font-family: 'Raleway', sans-serif;
+
+    textarea {
+        font-family: 'Raleway', sans-serif;
+    }
 }
 
 #primal-admin-panel {
-    font-family: 'Poppins', sans-serif;
-
-    textarea, option {
-        font-family: 'Poppins', sans-serif;
-    }
-
-
     .primal-tab-radio {
         display: none;
         &:checked + .primal-quick-nav {
@@ -87,16 +82,14 @@ body {
             width: 100%;
             height: calc( 100% - 70px);
 
-            background-image: linear-gradient(to bottom, #414141, #515151);
+            background-image: linear-gradient(to bottom, $yellow, $red);
             background-position: center;
             background-size: 100%;
 
             border-radius: 10px;
-            border-radius: 2px;
         }
 
         border-radius: 10px;
-        border-radius: 2px;
         filter: drop-shadow(0 2px 15px rgba(black, 0.1));
 
         &,
@@ -119,7 +112,7 @@ body {
             overflow: hidden;
 
             background-color: white;
-            border-radius: 2px;
+            border-radius: 10px;
 
             transition: .5s $softBounce;
 
@@ -130,7 +123,6 @@ body {
             .primal-tab-label {
                 text-align: center;
                 color: $red;
-                color: $lightText;
 
                 margin: -15px -30px 0;
                 padding: 15px 30px;
@@ -167,181 +159,68 @@ body {
                 textarea,
                 select {
                     width: 100%;
-                    padding: 25px 0 10px;
+                    padding: 10px;
                     border: none;
-                    border-bottom: 1px solid $lightGray;
-                    caret-color: $red;
-                    caret-color: $green;
+                    border: 1px solid $yellow;
+                    border: 1px solid $red;
+                    border-radius: 15px;
+                    border-radius: 5px;
 
-                    font-size: 13px;
-                    outline: none;
-
-                    transition: border .4s;
-
-                    &:focus {
-                        border-color: $green;
-                        & + label { 
-                            color: $green;
-                        }
-                    }
-                    
-                    &::placeholder {
-                        text-align: right;
-                        opacity: .15;
-                    }
+                    font-size: 12px;
                 }
 
                 textarea {
                     resize: vertical;
-                    height: 95px;
-                    padding-bottom: 0;
+                    height: 75px;
                     min-height: 60px;
-                    max-height: 180px;
+                    max-height: 100px;
                     border-bottom-right-radius: 0;
-
-                    overflow: hidden;
                 }
 
-                &.chbox,
-                &.rdbox {
-                    & > input {
+                &.chbox {
+                    input {
                         display: none;
 
                         &:checked {
                             & + .checkbox,
-                            & + .radiobox {
-                                &, & + label {
-                                    color: $green;
-                                    opacity: 1;
-                                }
-                                & ~ .more-when-checked {
-                                    animation: opensubtab .7s normal forwards;
-                                }
-                            }                            
-                        }
-                    }
-
-                    & > .checkbox, 
-                    & > .radiobox { 
-                        &,
-                        & + label {
-                            color: $dark;
-                            opacity: .2;
-                        }
-                        
-                        transition: .4s;
-                    } 
-
-                    .checkbox, 
-                    .radiobox {
-                        & + label {
-                            top: 5px;
-                            left: 0;
-                            right: 0;
-                            background-color: transparent;
-                            display: inline-block;
-                            font-weight: 500;
-                            text-align: right;
-                            width: 100%;
-                        }   
-                    }
-
-                    .more-when-checked {
-                        position: absolute;
-                        bottom: 100%;
-                        left: 0;
-                        width: 100%;
-                        width: calc(100% + 20px);
-                        background-color: white;
-                        padding: 0 10px;
-                        margin: 0 -10px;
-                        border-radius: 2px;
-
-                        overflow: hidden;
-                        max-height: 0px;
-                        
-                        box-shadow: 0 0 0 rgba(black, 0);
-                        animation: closesubtab .7s normal forwards;
-                        
-                        .primal-save {
-                            margin-bottom: 10px;
-                        }
-                    }
-                }
-                
-                .option {
-                    & > .checkbox,
-                    & > .radiobox {
-                        &, & + label {
-                            color: $lightText;
-                            opacity: 1;
-                        }
-                    }
-                    &:hover {
-                      & > .checkbox,
-                        & > .radiobox {
-                            &, & + label {
-                                color: $dark;
+                            & + .checkbox + label {
+                                color: $red;
+                                opacity: 1;
                             }
-                        }  
+                        }
+                    }
+
+                    .checkbox,
+                    .checkbox + label {
+                        color: $dark;
+                        opacity: .2;
+                    }
+
+                    label {
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        background-color: transparent;
+                        display: inline-block;
+                        font-weight: 500;
+                        text-align: right;
+                        width: 100%;
                     }
                 }
 
                 input[type="checkbox"] {}
 
-                select {
-                    border: 1px solid $lightGray;
-                    border-radius: 2px;
-                    padding: 25px 7px 10px;
-                    cursor: pointer;
-                    option {
-                        padding: 0;
-                    }
-                    & + label {
-                        top: 5px;
-                        left: 12px;
-                    }                    
-                    appearance: none;
-                }
-
                 position: relative;
                 label {
                     position: absolute;
-                    top: 0;
-                    left: 0;
+                    top: -10px;
+                    left: 10px;
 
-                    color: $lightText;
-                    text-transform: lowercase;
+                    padding: 3px 3px 1px;
+                    background-color: white;
+
+                    color: $red; //                text-transform: lowercase;
                     font-size: 12px;
-
-                    font-weight: 400;
-
-                    transition: color .4s;
-                }
-                &[data-characters]::after {
-                    content: attr(data-characters);
-                    position: absolute;
-                    top: 0;
-                    right: 0;
-                    color: $lightText;
-                    text-transform: lowercase;
-                    font-size: 12px;
-                    font-weight: 400;
-                    transition: color .4s;
-                }
-            }
-            
-            .cms-select {
-                &::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 15px;
-                    right: 15px;
-                    width: 0;
-                    height: 0;
-                    border: 5px solid transparent;
-                    border-top-color: $lightGray;
-                    pointer-events: none;
                 }
             }
 
@@ -352,28 +231,30 @@ body {
                 padding: 10px 17px;
 
                 cursor: pointer;
-                background: transparent;
-                border: 1px solid $lightGray;
 
-                border-radius: 2px;
- 
-
-                text-transform: lowercase;
-                text-align: center;
-                color: $dark;
-                font-size: 13px;
-                line-height: 25px;
-
-
-                i {
-                    margin-left: 10px;
-                    font-size: 20px;
-                }
+                background-color: $red;
 
                 transition: .3s;
                 &:hover,
                 &:active {
-                    border-color: $green;
+                    background-color: darken( $red, 25%);
+                    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+                }
+
+                border: none;
+                border-radius: 25px;
+
+
+                font-size: 13px;
+                line-height: 25px;
+                color: white;
+
+                box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+                text-transform: lowercase;
+
+                i {
+                    margin-left: 10px;
+                    font-size: 20px;
                 }
             }
 
@@ -382,9 +263,7 @@ body {
             }
 
             .primal-menu-input {
-                padding-top: 25px !important;
-                margin-bottom: 0 !important;
-                padding-bottom: 0 !important;
+
                 [draggable] {
                     user-select: none;
                 }
@@ -399,9 +278,9 @@ body {
                     font-size: 13px;
                     padding: 5px;
                     padding-left: 10px;
-
+                    
                     background-color: white;
-
+                    
                     border-radius: 3px;
                     border: 1px solid $lightGray;
 
@@ -426,7 +305,7 @@ body {
 
                                 position: absolute;
                                 top: 300%;
-                                left: 50%;
+                                left: 0;
                                 z-index: 2;
                                 padding: 5px 10px;
                                 border-radius: 5px;
@@ -434,8 +313,6 @@ body {
 
                                 font-family: 'Raleway', sans-serif;
                                 font-size: 10px;
-                                
-                                text-transform: lowercase;
 
                                 background-color: $red;
                                 color: white;
@@ -454,24 +331,14 @@ body {
                             }
                         }
                     }
-
-                    &:hover {
-                        border-color: $green;
-                    }
-
+                    
                     &:active {
                         cursor: grabbing;
                     }
-
+                    
                     &[data-target="false"] {
                         .primal-icon-windows {
-                            color: $lightGray;
-                        }
-                    }
-                    
-                    &[data-rel="true"] {
-                        .primal-icon-calendar {
-                            color: $lightGray;
+                            opacity: 0.1;
                         }
                     }
                 }
@@ -502,8 +369,6 @@ body {
             display: inline-block;
             cursor: pointer;
             background-color: $red;
-            background-color: $lightText;
-            background-color: $dark;
             color: white;
             width: 50px;
             height: 50px;
@@ -518,7 +383,7 @@ body {
 
             &:hover,
             &:active {
-                background-color: $red;
+                background-color: darken( $red, 25%);
                 box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
             }
         }
@@ -532,8 +397,7 @@ body {
     top: -100px;
     right: -350px;
 
-    max-width: 100%;
-    max-width: calc(100% - 30px);
+    max-width: 290px;
 
     z-index: 109999;
 
@@ -587,44 +451,6 @@ body {
     }
 }
 
-@keyframes opensubtab {
-    0% {
-        padding: 0 10px;
-        max-height: 0;
-        box-shadow: 0 0 0 rgba(black, 0);
-        overflow: hidden;
-    }
-    30% {
-        padding: 10px;
-        box-shadow: 0 5px 15px rgba(black, 0.3);
-    }
-    99% {
-        max-height: 400px;
-        overflow: hidden;
-    }
-    100% {
-        padding: 10px;
-        max-height: none;
-        overflow: visible;
-        box-shadow: 0 5px 15px rgba(black, 0.3);
-    }
-}
-
-@keyframes closesubtab {
-    0% {
-        padding: 10px;
-        max-height: none;
-        box-shadow: 0 5px 15px rgba(black, 0.1);
-    }
-    1% {
-        max-height: 100vh;
-    }
-    100% {
-        max-height: 0;
-        box-shadow: 0 0 0 rgba(black, 0);
-    }
-}
-
 
 @keyframes opentab {
     0% {
@@ -646,6 +472,7 @@ body {
 
 @keyframes closetab {
     0% {
+        //        padding: 35px 25px;
         max-height: none;
     }
     1% {
@@ -655,6 +482,7 @@ body {
         max-height: 50px;
     }
     100% {
+        //        padding: 15px 25px;
         max-height: 50px;
     }
 }
