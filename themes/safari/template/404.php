@@ -31,7 +31,7 @@
         (siteblock key='cookieInfo')
         <button id="eat-cookie">(siteblock key='cookieOK')</button>
     </div>
-    <script src="(themecatalog)assets/js/script.js"></script>
+    <script src="(dir_theme)assets/js/script.js"></script>
 </body>
 
 </html>(/strip)

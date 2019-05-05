@@ -1,4 +1,4 @@
-@charset "UTF-8";
+  @charset "UTF-8";
 /* Colors */
 
 $dark: #100e0c;
@@ -31,17 +31,81 @@ $softBounce: cubic-bezier(0.68, -0.55, 0.265, 2.15);
 @import 'vicons';
 
 @import url('https://fonts.googleapis.com/css?family=Poppins:300,400,600&subset=latin-ext');
+$mainFont: 'Poppins', Tahoma, sans-serif;
+
 body {
     position: relative;
 }
 
-#primal-admin-panel {
-    font-family: 'Poppins', sans-serif;
+#primal-admin-panel-trigger {
+    position: fixed;
+    z-index: 100;
+    top: 15px;
+    right: 15px; 
+    font-size: 20px;
+    display: inline-block;
+    padding: 15px 15px;
+    line-height: 20px;
 
-    textarea, option {
-        font-family: 'Poppins', sans-serif;
+    background-color: #fff;
+    cursor: pointer;
+    border-radius: 2px;
+    
+    i {
+        color: $lightText;   
+        transform: rotate(0deg);
+        transition: .3s $softBounce;
     }
+    box-shadow: 0 2px 15px rgba(black, 0.05);
+    
+    transition: .3s $softBounce;
+    
+    &:hover {
+        
+        box-shadow: 0 2px 20px rgba(black, 0.15);
+        i {
+            color: $dark;
+            animation: rotate 1.5s infinite $softBounce;   
+        }
+    }
+    
+    &::after {
+        @extend %primalicon;
+        content: '\e91b';
+        position: fixed;
+        top: 0;
+        left: -150px;
+        height: 100%;
+        width: 150px;
+        writing-mode: vertical-lr;
+        padding: 10px;
+        color: white;
+        background-color: $dark;
+        background-image: linear-gradient(to bottom, #414141, #515151);
+        
+        transition: .3s ease-in-out;
+        
+    }
+}
 
+#prmial-admin-switch:checked ~ #primal-admin-panel-trigger {
+    box-shadow: 0 2px 15px rgba(black, 0.05);
+    i {
+        color: $dark;
+    }
+}
+
+#prmial-admin-switch:checked ~ #primal-admin-panel,
+#prmial-admin-switch:checked ~ #primal-admin-panel-trigger::after {
+    left: 0;
+}
+
+#primal-admin-panel {
+    font-family: $mainFont;
+
+    textarea, option, button {
+        font-family: inherit;
+    }
 
     .primal-tab-radio {
         display: none;
@@ -60,20 +124,33 @@ body {
 
 
         &::not(:checked) {
-            //            animation: closetab .7s normal forwards;   
+            animation: closetab .7s normal forwards;   
         }
     }
 
     position: fixed;
-    top: 15px;
-    left: 0;
-    @media #{$sm} {
-        left: 15px;
-    }
+    top: 0;
     z-index: 99999;
 
-    width: 340px;
+    overflow-y: scroll;
+    
+    left: -360px;
+    width: 360px;
     max-width: 100%;
+    height: 100%;
+    
+    padding: 15px 3px;
+    @media #{$sm} {
+        padding: 15px;
+    }
+    
+    background-color: white;
+    
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    
+    
+    transition: .7s .1s $softBounce;
+    
 
     .primal-tab {
         position: relative;
@@ -131,11 +208,13 @@ body {
                 text-align: center;
                 color: $red;
                 color: $lightText;
+                text-transform: lowercase;
 
                 margin: -15px -30px 0;
                 padding: 15px 30px;
 
                 font-weight: 500;
+                font-size: 16px;
 
 
                 i {
@@ -348,7 +427,10 @@ body {
             .primal-save {
                 display: block;
                 width: 100%;
-                margin: 0 auto;
+                margin: 0 auto 15px;
+                &:last-child {
+                    margin-bottom: 0;
+                }
                 padding: 10px 17px;
 
                 cursor: pointer;
@@ -374,6 +456,13 @@ body {
                 &:hover,
                 &:active {
                     border-color: $green;
+                }
+                
+                &.primal-save-sm {
+                    font-size: 12px;
+                    i {
+                        font-size: 15px;
+                    }
                 }
             }
 
@@ -496,30 +585,31 @@ body {
 
     .primal-quick-nav {
         display: block;
+        padding: 15px 0;
         text-align: center;
 
         .primal-quick-btn {
-            display: inline-block;
+            display: block;
             cursor: pointer;
-            background-color: $red;
-            background-color: $lightText;
-            background-color: $dark;
-            color: white;
-            width: 50px;
-            height: 50px;
-            margin: 0 7px;
-            border-radius: 50%;
-            line-height: 47px;
-            font-size: 24px;
+            text-transform: lowercase;
+            
+            color: $lightText;
+            margin: 18px 0;
+            font-size: 12px;
+            transition: .3s;
 
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+
+            i {
+                margin-left: 10px;
+                font-size: 20px;
+            }
+
 
             transition: .3s;
 
             &:hover,
             &:active {
-                background-color: $red;
-                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+                color: $dark;
             }
         }
     }

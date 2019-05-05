@@ -16,59 +16,55 @@ Szymon Tondowski - https://github.com/deykun/primal-cms
 session_start();
 mb_internal_encoding('UTF-8');
 
-
 class primal {
+    private static $db = array();
     private static $debug = false;
+    private static $theme = 'safari';
+    private static $dir_cms = '/';
+    private static $admin_lang = 'pl';
     private static $admin = false;
     private static $login = false;
-    private static $dirtheme = '/themes/safari/';
-    private static $user = 'admin';
-    private static $password = 'admin';
-    private static $adminSessionHash = 'sjhgsjh';
-//    private static $cmscatalog = '/'; // site.com → '/', site.com/blog → '/blog/'
-    private static $cmscatalog = '/'; // site.com → '/', site.com/blog → '/blog/'
-    private static $theme = 'safari';
-    private static $minifyHTML = true; 
-
-    private static $db = [];
-    public static $pagekey = '';    
+    private static $admin_user_name = '';   
+    private static $lang = array();
+    private static $adminSessionHash = 'adminHash';
+    private static $minifyHTML = true;
+    public static $pageToRender = '';
     
-	public static function init() {  
-        if (isset($_SESSION['pah']) && $_SESSION['pah'] == self::$adminSessionHash) {
-			self::$admin = true;
-		}
-        
+    
+    private function setPrimalConfig() {
+        /* You can adjust your CMS settings in config.php file */
+        require_once( 'config.php' ); 
+        if ( !empty($config['basedir']) ) { self::$dir_cms = $config['basedir']; } 
+        if ( !empty($config['admin_lang']) ) { self::$admin_lang = $config['admin_lang']; } 
+        if ( !empty($config['debug']) ) { self::$debug = $config['debug']; }
+        if ( !empty($config['theme']) ) { self::$theme = $config['theme']; }
+        require_once(__DIR__.'/admin/langs/'.self::$admin_lang.'.php');
+        self::$lang = $lang;
+    }
+    
+	public static function init() {
+        self::isAdminLogedIn();                
+        self::setPrimalConfig();
         self::$db = self::getDataFromJSON();
-        self::$pagekey = self::urlMatch();
-                
+        self::$pageToRender = self::getPageKeyFromUrl();
         
         if ( self::$admin == true ) {
-            if (isset($_GET['action'])) {
+            if ( isset($_GET['action']) ) {
                 $action = self::makeThisSafe( $_GET['action'] );
-                self::adminAjaxAction($action);
-                die();
+                self::adminAjaxAction( $action );
             } else {
                 self::renderBackendPage( );   
+                self::renderDebug( );
             }
 		} else {
             self::renderFrontendPage( );
         } 
-        
-        /* Debug (on frontend too!) */        
-        if (self::$debug == true) {
-            echo '<hr> <h3>CONTENT of JSON DATABASE - last update - '.self::$db['updated'].' </h3>';
-            echo '<pre>';
-            print_r(self::$db);
-            echo '</pre>';
-        }        
     }
     
-    private function urlMatch() {
-        $chosenPageAlias = self::$db['homepage'];  // Default home page
-        
+    private function getPageKeyFromUrl() {
+        $chosenPageAlias = self::$db['homepage'];
         /* if subpage was requsted */
         if ( $page = isset( $_GET['page'] ) ) {
-
             $pages = self::$db['page'];
             $requestedURL = self::makeThisSafe( $_GET['page'] );
 
@@ -77,10 +73,7 @@ class primal {
                 $chosenPageAlias = self::$db['homepage'];
                 if ( self::$admin == false ) {
                     self::$login = true;
-                    if ( isset($_GET['action']) && $_GET['action'] == 'login' ) {
-                        self::loginAjaxAction();                        
-                        die();
-                    }
+                    self::loginAjaxAction();
                 }
             } else {
                 /* assuming 404 error */
@@ -89,30 +82,15 @@ class primal {
                 /* searching for url in pages */
                 foreach($pages as $index => $page) {
                     if ($page['url'] == $requestedURL) {
-                        $chosenPageAlias = $index;
+                        if ( $page['active']==1 || self::$admin == true ) {
+                            $chosenPageAlias = $index;   
+                        }
                         break;
                     }
                 } 
             }
         }
         return $chosenPageAlias;
-    }
-    
-    private function loginAjaxAction() {
-        $responseJSON = [];   
-        $postuser = self::makeThisSafe( $_POST['user'] );
-        $postpassword = self::makeThisSafe( $_POST['password'] );
-        if ($postuser == self::$user && $postpassword == self::$password) {
-            $_SESSION['pah'] = self::$adminSessionHash;
-
-            $responseJSON['status'] = 'success';
-            $responseJSON['text'] = 'Zalogowano. Odświeżanie... <i class="primal-icon-refresh"></i>';
-            $responseJSON['reload'] = true;
-        } else {
-            $responseJSON['status'] = 'error';
-            $responseJSON['text'] = 'Błędny login lub hasło. <i class="primal-icon-cancel"></i>';                            
-        }
-        echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
     }
         
     private static function makeThisSafe( $text ) {
@@ -180,7 +158,7 @@ class primal {
     
     private static function replaceTagsWithContent( $templateString ) {
         
-        $pagedata = self::$db['page'][self::$pagekey];  
+        $pagedata = self::$db['page'][self::$pageToRender];  
         $page = $pagedata['url'];    
         
         $allowedNames = '[a-zA-Z]{1}[a-zA-Z0-9]+'; 
@@ -194,19 +172,34 @@ class primal {
         } while ( preg_match($subtemplates, $templateString) && $i < 10 );
             
         
-        /* PHP vars available in template */
+        /* 
+            This variables are available in PHP template by default.
+                'variable_name' => $variable_value,
+        */
+        $variablesInTemplate = array(
+            'dir_cms' => self::$dir_cms,
+            'dir_theme' => self::$dir_cms.'themes/'.self::$theme.'/',
+            'site_name' => self::$db['site_name'],
+            'page_active' => $pagedata['active'],
+            'page_cache' => $pagedata['cache'],
+            'page_menu_name' => $pagedata['menu_name'],
+            'page_template' => $pagedata['template'],
+            'page_url' => $pagedata['url'],
+            'page_title' => $pagedata['title'],
+            'page_seo_index' => $pagedata['seo_index'],
+            'page_meta_description' => $pagedata['metadescription'],
+        );
+        /*
+            You can call them in your template file like this:
+                - <?php echo $variable_name; ?>
+                - ((variable_name))
+        */
         $phpVars = '<?php ';
-        $phpVars .= ' $sitename="'.self::$db['sitename'].'"; ';
-        $phpVars .= ' $title="'.$pagedata['title'].'"; ';
-        $phpVars .= ' $metadescription="'.$pagedata['metadescription'].'"; ';
-        $phpVars .= ' $active='.$pagedata['active'].'; ';
-        $phpVars .= ' $cache='.$pagedata['cache'].'; ';
-        $phpVars .= ' $seoindex='.$pagedata['seoindex'].'; ';
-        $phpVars .= ' $menu_name="'.$pagedata['menu_name'].'"; ';
-        $phpVars .= ' $url="'.$pagedata['url'].'"; ';
-        $phpVars .= ' $cmscatalog="'.self::$cmscatalog.'"; ';
-        $phpVars .= ' $themecatalog="'.self::$cmscatalog.'themes/'.self::$theme.'/"; ';
-        $phpVars .= ' $template="'.$pagedata['template'].'"; ';
+        foreach($variablesInTemplate as $var_name => $var_value) {
+            $phpVars .= ' $'.$var_name.'="'.$var_value.'"; ';
+            $templateString = str_replace('(('.$var_name.'))', $var_value, $templateString);
+        }
+        
         $phpVars .= ' $siteblocks=\''.json_encode( self::$db['siteblock'] , JSON_UNESCAPED_UNICODE).'\'; $siteblock=json_decode( $siteblocks , true ); ';
         $phpVars .= ' $blocks=\''.json_encode( $pagedata['block'] , JSON_UNESCAPED_UNICODE).'\'; $block=json_decode( $blocks , true ); ';        
         $menus = self::$db['menu'];
@@ -219,13 +212,6 @@ class primal {
         
         $phpVars .= ' $menus=\''.json_encode( $menuPHP , JSON_UNESCAPED_UNICODE).'\'; $menu=json_decode( $menus , true ); ';       
         
-        $templateString = str_replace("(sitename)", self::$db['sitename'], $templateString);
-        $templateString = str_replace("(title)", $pagedata['title'], $templateString);
-        $templateString = str_replace("(metadescription)", $pagedata['metadescription'], $templateString);
-        $templateString = str_replace("(url)", $pagedata['url'], $templateString);
-        $templateString = str_replace("(cmscatalog)", self::$cmscatalog, $templateString);
-        $templateString = str_replace("(themecatalog)", self::$cmscatalog.'themes/'.self::$theme.'/', $templateString);
-        $templateString = str_replace("(template)", $pagedata['template'], $templateString);
         
         if (self::$admin == true) {
             /* Page blocks */
@@ -237,7 +223,19 @@ class primal {
             $templateString = preg_replace_callback($siteblocks, 'self::generateInputsWithContent', $templateString);
             
             /* Admin vars */
+            $adminVariablesInTemplate = array(
+                'admin' => true,
+                'admin_lang' => self::$admin_lang,
+                'admin_user_name' => self::$admin_user_name,
+            );
+            foreach($adminVariablesInTemplate as $var_name => $var_value) {
+                $phpVars .= ' $'.$var_name.'="'.$var_value.'"; ';
+            }
+            
+            
             $phpVars .= ' $admin=true; ';
+            $phpVars .= ' $admin_lang="'.self::$admin_lang.'"; ';
+            $phpVars .= ' $admin_user_name="'.self::$admin_user_name.'"; ';
             $phpVars .= ' $availableTemplatesArray=\''.json_encode( self::getAvailableTemplates() , JSON_UNESCAPED_UNICODE).'\'; $availableTemplates=json_decode( $availableTemplatesArray , true ); ';
             $phpVars .= ' $homepage="'.self::$db['homepage'].'";';
             $phpVars .= ' $availablePagesArray=\''.json_encode( self::getAvailablePages() , JSON_UNESCAPED_UNICODE).'\'; $availablePages=json_decode( $availablePagesArray , true ); ';
@@ -323,14 +321,14 @@ class primal {
                 $elementPHP['key'] = $element['key'];
                 
                 if ( $element['key'] == self::$db['homepage'] ) {
-                    $elementPHP['url'] = self::$cmscatalog;
+                    $elementPHP['url'] = self::$dir_cms;
                 } else if ( isset( self::$db['page'][ $element['key'] ]['url'] ) ) {
-                    $elementPHP['url'] =  self::$cmscatalog.self::$db['page'][ $element['key'] ]['url'];
+                    $elementPHP['url'] =  self::$dir_cms.self::$db['page'][ $element['key'] ]['url'];
                 } else {
-                    $elementPHP['url'] = self::$cmscatalog.'404';
+                    $elementPHP['url'] = self::$dir_cms.'404';
                 }
                 
-                if ( $element['key'] == self::$pagekey ) {
+                if ( $element['key'] == self::$pageToRender ) {
                     $elementPHP['active'] = true;
                     $active = true;
                 }
@@ -388,8 +386,7 @@ class primal {
 
 */
     private static function renderFrontendPage( ) {
-        $page = self::$pagekey;
-        
+        $page = self::$pageToRender;
         $pagedata = self::$db['page'][$page];
         
         $templatelocation = 'themes/'.self::$theme.'/template/'.$pagedata['template']. '.php';        
@@ -429,7 +426,7 @@ class primal {
             file_put_contents( $cachelocation , $templateWithContent );          
             
             if ($pagedata['cache'] == 1) {
-                self::$db['page'][self::$pagekey]['cached'] = date("Y-m-d H:i:s");
+                self::$db['page'][self::$pageToRender]['cached'] = date("Y-m-d H:i:s");
                 self::saveDataToJSON();   
             }
             require_once( $cachelocation ); 
@@ -441,9 +438,9 @@ class primal {
     
     private static function putContentInBlocks( $matches ) {
         
-        if ( isset( self::$db['page'][self::$pagekey]['block'][$matches[1]] ) ) {
+        if ( isset( self::$db['page'][self::$pageToRender]['block'][$matches[1]] ) ) {
             /* There is data for this block */
-            $dataToPutInBlock = self::$db['page'][self::$pagekey]['block'][$matches[1]];
+            $dataToPutInBlock = self::$db['page'][self::$pageToRender]['block'][$matches[1]];
             
             
             /* Only digits */
@@ -501,14 +498,31 @@ class primal {
     ╚═╝  ╚═╝╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝
                                         
 */                               
-      
+    private static function isAdminLogedIn( ) {
+        if ( isset($_SESSION['pah']) && $_SESSION['pah'] == self::$adminSessionHash ) {
+            self::$admin = true;
+            self::$admin_user_name = $_SESSION['user'];
+            return true;
+        }
+        return false;
+    }
+    
+    private static function renderDebug( ) {
+        if ( self::$debug == true ) {
+            echo '<hr> <h1>CONTENT of JSON DATABASE - last update - '.self::$db['updated'].' </h1>';
+            echo '<pre>';
+            print_r(self::$db);
+            echo '</pre>';
+        }
+    }
+    
     private static function renderBackendPage( ) {
-        $page = self::$pagekey;
+        $page = self::$pageToRender;
         
         $pagedata = self::$db['page'][$page];
         
         $templatelocation = 'themes/'.self::$theme.'/template/'.$pagedata['template']. '.php';
-        $admincachelocation = 'admincache/'.$pagedata['url']. '.php';
+        $admincachelocation = 'cache/admin_primal_'.$pagedata['url']. '.php';
         
         if ( file_exists( $templatelocation ) ) {
             $template = file_get_contents( $templatelocation );
@@ -520,6 +534,7 @@ class primal {
             
 
             require_once( $admincachelocation );
+            unlink( $admincachelocation );
             return;
         }
     }
@@ -528,8 +543,8 @@ class primal {
         $blockcode = $matches[0];
         if (strpos($blockcode, '(block') !== false) {
             
-            if ( isset( self::$db['page'][self::$pagekey]['block'][$matches[1]] ) ) {
-                $content = self::$db['page'][self::$pagekey]['block'][$matches[1]];
+            if ( isset( self::$db['page'][self::$pageToRender]['block'][$matches[1]] ) ) {
+                $content = self::$db['page'][self::$pageToRender]['block'][$matches[1]];
             } else {
                 $content = '';
             }
@@ -567,6 +582,14 @@ class primal {
         
         return '<div id="cms-field-'.$tagCode.'" class="wysiwyg '.$tagType.'"  data-'.$type.'-key="'.$tagCode.'" data-block-update="false">'.$blockcontent.'</div>';
     }
+    
+   private static function translate($key) {
+        if ( isset( self::$lang[$key] ) ) {
+            return self::$lang[$key];
+        } else {
+            return $key;
+        }
+    }
         
     private static function adminPanel( $templateWithContent ) {
         
@@ -599,15 +622,58 @@ class primal {
         return $templates;
     }
     
+    private static function clearCache() {
+        $filesInDir = scandir('cache/');
+        $removedCachedFile = false;
+        
+        foreach($filesInDir as $file) {
+            if (preg_match('/(.php|.html)$/', $file)) {
+                unlink( 'cache/'.$file );
+                $removedCachedFile = true;
+            }
+        }
+        return $removedCachedFile;
+    }
+    
+    private static function adminAjaxResponse( $status = 'fail', $text = '', $reload = false, $newurl = '') {
+        $responseJSON = array();
+        $responseJSON['status'] = $status;
+        $responseJSON['text'] = $text;
+        $responseJSON['reload'] = $reload;
+        if ( !empty($newurl) ) { $responseJSON['newurl'] = $newurl;}
+
+        echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+    }
+    
+    private function loginAjaxAction() {
+        if ( isset($_GET['action']) && $_GET['action'] == 'login' ) {
+            $postuser = self::makeThisSafe( $_POST['user'] );
+            $postpassword = self::makeThisSafe( $_POST['password'] );
+
+            if ( file_exists( 'admin/users/'.$postuser.'.php' ) ) {
+                require_once( 'admin/users/'.$postuser.'.php' );
+
+                if ( $postpassword == $user_password_hash ) {
+                    $_SESSION['pah'] = self::$adminSessionHash;
+                    $_SESSION['user'] = $postuser;
+                    self::adminAjaxResponse('success', self::translate('you_login').' <i class="primal-icon-refresh"></i>', true);    
+
+                } else {                  
+                    self::adminAjaxResponse('error', self::translate('login_error').' <i class="primal-icon-cancel"></i>');    
+                }
+            } else {
+                self::adminAjaxResponse('error', self::translate('login_error').' <i class="primal-icon-cancel"></i>');    
+            }                  
+            die();
+        }
+    }
+    
     private static function adminAjaxAction($action) {
         switch ($action) {
             case 'logout':
                 unset($_SESSION['pah']);
-                $responseJSON['status'] = 'success';
-                $responseJSON['text'] = 'Wylogowano. Odświeżanie... <i class="primal-icon-refresh"></i>';
-                $responseJSON['reload'] = true;
-
-                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+                unset($_SESSION['user']);   
+                self::adminAjaxResponse('success', self::translate('you_logout').' <i class="primal-icon-refresh"></i>', true);    
 
                 break;
             case 'page_update':
@@ -615,7 +681,7 @@ class primal {
                 if ( isset($_POST['blockkeys']) ) {
                     $blocks = explode(",", $_POST['blockkeys']);
                     foreach($blocks as $block) {
-                        self::$db['page'][self::$pagekey]['block'][$block] = self::makeThisSafeHTML($_POST[$block]);
+                        self::$db['page'][self::$pageToRender]['block'][$block] = self::makeThisSafeHTML($_POST[$block]);
                     }
                 }
                 if ( isset($_POST['siteblockkeys']) ) {
@@ -625,38 +691,40 @@ class primal {
                     }
                 }
 
-                self::$db['page'][self::$pagekey]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['page'][self::$pagekey]['title'];
+                self::$db['page'][self::$pageToRender]['title'] = (isset($_POST['title'])) ? self::makeThisSafe($_POST['title']) : self::$db['page'][self::$pageToRender]['title'];
 
-                self::$db['page'][self::$pagekey]['active'] = (isset($_POST['active'])) ? 1 : 0;
-                self::$db['page'][self::$pagekey]['seoindex'] = (isset($_POST['seoindex'])) ? 1 : 0;
-                self::$db['page'][self::$pagekey]['cache'] = (isset($_POST['cache'])) ? 1 : 0; 
+                self::$db['page'][self::$pageToRender]['active'] = (isset($_POST['active'])) ? 1 : 0;
+                self::$db['page'][self::$pageToRender]['seo_index'] = (isset($_POST['seo_index'])) ? 1 : 0;
+                self::$db['page'][self::$pageToRender]['cache'] = (isset($_POST['cache'])) ? 1 : 0; 
 
-                self::$db['page'][self::$pagekey]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['page'][self::$pagekey]['template'];
+                self::$db['page'][self::$pageToRender]['template'] = (isset($_POST['template'])) ? $_POST['template'] : self::$db['page'][self::$pageToRender]['template'];
 
-                self::$db['page'][self::$pagekey]['metadescription'] = (isset($_POST['metadescription'])) ? self::makeThisSafe( $_POST['metadescription'] ) : '';
-                self::$db['page'][self::$pagekey]['menu_name'] = (isset($_POST['menu_name'])) ? self::makeThisSafe( $_POST['menu_name'] ) : self::$db['page'][self::$pagekey]['menu_name'];
+                self::$db['page'][self::$pageToRender]['metadescription'] = (isset($_POST['metadescription'])) ? self::makeThisSafe( $_POST['metadescription'] ) : '';
+                self::$db['page'][self::$pageToRender]['menu_name'] = (isset($_POST['menu_name'])) ? self::makeThisSafe( $_POST['menu_name'] ) : self::$db['page'][self::$pageToRender]['menu_name'];
 
-                self::$db['page'][self::$pagekey]['updated'] = date("Y-m-d H:i:s");
-                
-                
-                $responseJSON = [];
+                self::$db['page'][self::$pageToRender]['updated'] = date("Y-m-d H:i:s");
                 
                 $postedURL = self::makeThisSafe( $_POST['url'] );
-                if ( $postedURL != self::$db['page'][self::$pagekey]['url']) {
-                    self::$db['page'][self::$pagekey]['url'] = self::makeThisSafeURL( $postedURL );
-                    $responseJSON['newurl'] = self::$cmscatalog.self::makeThisSafeURL( $postedURL );
-                    $responseJSON['reload'] = true;
+                $newurl = '';
+                if ( $postedURL != self::$db['page'][self::$pageToRender]['url']) {
+                    self::$db['page'][self::$pageToRender]['url'] = self::makeThisSafeURL( $postedURL );
+                    $newurl = self::$dir_cms.self::makeThisSafeURL( $postedURL );
                 }
-                $responseJSON['status'] = 'success';
-                $responseJSON['text'] = 'Strona została zaktualizowana. <i class="primal-icon-download"></i>';
+                
                 self::saveDataToJSON(); 
                 
-                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+                if ( empty($newurl) ) {
+                    self::adminAjaxResponse('success', self::translate('subpage_was_updated').' <i class="primal-icon-download"></i>');    
+                } else {
+                    self::adminAjaxResponse('success',  self::translate('subpage_was_updated').' <i class="primal-icon-download"></i>', true, $newurl);    
+                }
+                
+                
                 break;
                 
             case 'site_update':
                 
-                self::$db['sitename'] = (isset($_POST['sitename'])) ? self::makeThisSafe($_POST['sitename']) : self::$db['sitename'];
+                self::$db['site_name'] = (isset($_POST['site_name'])) ? self::makeThisSafe($_POST['site_name']) : self::$db['site_name'];
                 self::$db['homepage'] = (isset($_POST['homepage'])) ? self::makeThisSafe($_POST['homepage']) : self::$db['homepage'];                
                 
                 if ( isset($_POST['menukeys']) ) {
@@ -665,17 +733,26 @@ class primal {
                     self::$db['menu'] = json_decode( $menukeys , true );
                 }
                 
-                $responseJSON = [];
-                $responseJSON['reload'] = true;
-                $responseJSON['status'] = 'success';
-                $responseJSON['text'] = 'Portal został zaktualizowany. <i class="primal-icon-download"></i>';
-                self::saveDataToJSON(); 
                 
-                echo json_encode( $responseJSON , JSON_UNESCAPED_UNICODE);
+                self::saveDataToJSON(); 
+                self::adminAjaxResponse('success', self::translate('site_was_updated').' <i class="primal-icon-download"></i>', true);
+                
                 break;
+                
+            case 'clear_cache':
+                
+                if ( self::clearCache() == true ) {
+                    self::adminAjaxResponse('success', self::translate('cache_was_cleared').' <i class="primal-icon-trash"></i>');
+                } else {
+                    self::adminAjaxResponse('success', self::translate('cache_is_empty').' <i class="primal-icon-clock"></i>');
+                } 
+                break;
+                
+            default:
+                self::adminAjaxResponse('fail', self::translate('unknown_action').' "'.$action.'". <i class="primal-icon-cog"></i>');
         }
+        die();
     }
-    
 }
     
 primal::init();
